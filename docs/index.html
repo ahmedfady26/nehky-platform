@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📋 خريطة موقع منصة نحكي</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            min-height: 100vh;
+            padding: 24px;
+            direction: rtl;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+        
+        .header-gradient {
+            background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+            color: white;
+            padding: 32px;
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            color: #bfdbfe;
+        }
+        
+        .stats {
+            padding: 24px;
+            background: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 16px;
+            text-align: center;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        .filters {
+            padding: 24px;
+            text-align: center;
+        }
+        
+        .filter-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+        }
+        
+        .filter-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        
+        .filter-btn.active {
+            background: #3b82f6;
+            color: white;
+            box-shadow: 0 4px 14px 0 rgba(0, 118, 255, 0.39);
+        }
+        
+        .filter-btn:not(.active) {
+            background: #e5e7eb;
+            color: #374151;
+        }
+        
+        .filter-btn:not(.active):hover {
+            background: #d1d5db;
+        }
+        
+        .pages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 24px;
+        }
+        
+        .page-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            text-decoration: none;
+            color: inherit;
+            overflow: hidden;
+        }
+        
+        .page-card:hover {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            transform: translateY(-8px);
+        }
+        
+        .page-content {
+            padding: 24px;
+        }
+        
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+        
+        .page-icon {
+            font-size: 2rem;
+        }
+        
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .status-active {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .status-development {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-test {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .page-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+        
+        .page-description {
+            color: #6b7280;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+        
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .page-path {
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            background: #f3f4f6;
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: #374151;
+        }
+        
+        .visit-link {
+            color: #3b82f6;
+            font-weight: 500;
+        }
+        
+        .category-info {
+            margin-top: 32px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            display: none;
+        }
+        
+        .category-info.show {
+            display: block;
+        }
+        
+        .category-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 16px;
+        }
+        
+        .category-text {
+            color: #6b7280;
+            line-height: 1.6;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        @media (max-width: 768px) {
+            .pages-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .filter-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-gradient">
+                <h1>📋 خريطة موقع منصة نحكي</h1>
+                <p>دليل شامل لجميع صفحات المنصة</p>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" style="color: #3b82f6;">37</div>
+                        <div class="stat-label">إجمالي الصفحات</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" style="color: #10b981;">14</div>
+                        <div class="stat-label">صفحات المستخدمين</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" style="color: #8b5cf6;">4</div>
+                        <div class="stat-label">صفحات الإدارة</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" style="color: #3b82f6;">13</div>
+                        <div class="stat-label">صفحات الاختبار</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" style="color: #10b981;">18</div>
+                        <div class="stat-label">صفحات نشطة</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters">
+                <div class="filter-buttons">
+                    <button class="filter-btn active" onclick="filterPages('all')">
+                        🌐 جميع الصفحات (37)
+                    </button>
+                    <button class="filter-btn" onclick="filterPages('user')">
+                        👤 المستخدمين (14)
+                    </button>
+                    <button class="filter-btn" onclick="filterPages('admin')">
+                        👨‍💼 الإدارة (4)
+                    </button>
+                    <button class="filter-btn" onclick="filterPages('test')">
+                        🧪 الاختبار (13)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pages Grid -->
+        <div class="pages-grid">
+            <!-- User Pages -->
+            <div class="page-card user-page">
+                <div class="page-content">
+                    <div class="page-header">
+                        <div class="page-icon">🏠</div>
+                        <span class="status-badge status-active">نشط</span>
+                    </div>
+                    <h3 class="page-title">الصفحة الرئيسية</h3>
+                    <p class="page-description">صفحة البداية الرئيسية للمنصة</p>
+                    <div class="page-footer">
+                        <code class="page-path">/</code>
+                        <span class="visit-link">← زيارة</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-card user-page">
+                <div class="page-content">
+                    <div class="page-header">
+                        <div class="page-icon">🔐</div>
+                        <span class="status-badge status-active">نشط</span>
+                    </div>
+                    <h3 class="page-title">تسجيل الدخول والتسجيل</h3>
+                    <p class="page-description">صفحة تسجيل الدخول وإنشاء حساب جديد</p>
+                    <div class="page-footer">
+                        <code class="page-path">/auth</code>
+                        <span class="visit-link">← زيارة</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-card user-page">
+                <div class="page-content">
+                    <div class="page-header">
+                        <div class="page-icon">📊</div>
+                        <span class="status-badge status-active">نشط</span>
+                    </div>
+                    <h3 class="page-title">لوحة التحكم الشخصية</h3>
+                    <p class="page-description">لوحة تحكم المستخدم الرئيسية</p>
+                    <div class="page-footer">
+                        <code class="page-path">/dashboard</code>
+                        <span class="visit-link">← زيارة</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-card user-page">
+                <div class="page-content">
+                    <div class="page-header">
+                        <div class="page-icon">📰</div>
+                        <span class="status-badge status-active">نشط</span>
+                    </div>
+                    <h3 class="page-title">التغذية الرئيسية</h3>
+                    <p class="page-description">عرض منشورات المتابعين والترندات</p>
+                    <div class="page-footer">
+                        <code class="page-path">/feed</code>
+                        <span class="visit-link">← زيارة</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-card user-page">
+                <div class="page-content">
+                    <div class="page-header">
+                        <div class="page-icon">🔍</div>
+                        <span class="status-badge status-active">نشط</span>
+                    </div>
+                    <h3 class="page-title">استكشاف</h3>
+                    <p class="page-description">اكتشاف محتوى وأشخاص جدد</p>
+                    <div class="page-footer">
+                        <code class="page-path">/explore</code>
+                        <span class="visit-link">← زيارة</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-card user-page">
+                <div class="page-content">
+                    <div class="page-header">
+                        <div class="page-icon">👤</div>
+                        <span class="status-badge status-active">نشط</span>
+                    </div>
+                    <h3 class="page-title">الملف الشخصي</h3>
+                    <p class="page-description">عرض وإدارة الملف الشخصي</p>
+                    <div class="page-footer">
+                        <code class="page-path">/profile</code>
+                        <span class="visit-link">← زيارة</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-card user-page">
+                <div class="page-content">
+                    <div class="page-header">
+                        <div class="page-icon">✏️</div>
+                        <span class="status-badge status-active">نشط</span>
+                    </div>
+                    <h3 class="page-title">تعديل الملف الشخصي</h3>
+                    <p class="page-description">تحديث معلومات الحساب الشخصي</p>
+                    <div class="page-footer">
+                        <code class="page-path">/profile/edit</code>
+                        <span class="visit-link">← زيارة</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-card user-page">
+                <div class="page-content">
+                    <div class="page-header">
+                        <div class="page-icon">✍️</div>
+                        <span class="status-badge status-active">نشط</span>
+                    </div>
+                    <h3 class="page-title">إنشاء منشور</h3>
+                    <p class="page-description">كتابة ونشر منشور جديد</p>
+                    <div class="page-footer">
+                        <code class="page-path">/create-post</code>
+                        <span class="visit-link">← زيارة</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-card user-page">
+                <div class="page-content">
+                    <div class="page-header">
+                        <div class="page-icon">💬</div>
+                        <span class="status-badge status-active">نشط</span>
+                    </div>
+                    <h3 class="page-title">الرسائل</h3>
+                    <p class="page-description">إدارة الرسائل الشخصية والمحادثات</p>
+                    <div class="page-footer">
+                        <code class="page-path">/messages</code>
+                        <span class="visit-link">← زيارة</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-card user-page">
+                <div class="page-content">
+                    <div class="page-header">
+                        <div class="page-icon">🔔</div>
+                        <span class="status-badge status-active">نشط</span>
+                    </div>
+                    <h3 class="page-title">الإشعارات</h3>
+                    <p class="page-description">عرض جميع الإشعارات والتنبيهات</p>
+                    <div class="page-footer">
+                        <code class="page-path">/notifications</code>
+                        <span class="visit-link">← زيارة</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-card user-page">
+                <div class="page-content">
+                    <div class="page-header">
+                        <div class="page-icon">⭐</div>
+                        <span class="status-badge status-active">نشط</span>
+                    </div>
+                    <h3 class="page-title">نظام النقاط</h3>
+                    <p class="page-description">عرض وإدارة النقاط المكتسبة</p>
+                    <div class="page-footer">
+                        <code class="page-path">/points</code>
+                        <span class="visit-link">← زيارة</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-card user-page">
+                <div class="page-content">
+                    <div class="page-header">
+                        <div class="page-icon">🔄</div>
+                        <span class="status-badge status-active">نشط</span>
+                    </div>
+                    <h3 class="page-title">استعادة الحساب</h3>
+                    <p class="page-description">استعادة الحساب عند فقدان كلمة المرور</p>
+                    <div class="page-footer">
+                        <code class="page-path">/account-recovery</code>
+                        <span class="visit-link">← زيارة</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-card user-page">
+                <div class="page-content">
+                    <div class="page-header">
+                        <div class="page-icon">🔑</div>
+                        <span class="status-badge status-active">نشط</span>
+                    </div>
+                    <h3 class="page-title">إعادة تعيين كلمة المرور</h3>
+                    <p class="page-description">تغيير كلمة المرور المفقودة</p>
+                    <div class="page-footer">
+                        <code class="page-path">/reset-password</code>
+                        <span class="visit-link">← زيارة</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-card user-page">
+                <div class="page-content">
+                    <div class="page-header">
+                        <div class="page-icon">📋</div>
+                        <span class="status-badge status-development">قيد التطوير</span>
+                    </div>
+                    <h3 class="page-title">فهرس الموقع</h3>
+                    <p class="page-description">دليل شامل لجميع صفحات الموقع</p>
+                    <div class="page-footer">
+                        <code class="page-path">/site-index</code>
+                        <span class="visit-link">← زيارة</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Pages -->
+            <div class="page-card admin-page">
+                <div class="page-content">
+                    <div class="page-header">
+                        <div class="page-icon">👨‍💼</div>
+                        <span class="status-badge status-active">نشط</span>
+                    </div>
+                    <h3 class="page-title">لوحة تحكم الإدارة</h3>
+                    <p class="page-description">لوحة التحكم الرئيسية للمشرفين</p>
+                    <div class="page-footer">
+                        <code class="page-path">/admin</code>
+                        <span class="visit-link">← زيارة</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-card admin-page">
+                <div class="page-content">
+                    <div class="page-header">
+                        <div class="page-icon">👥</div>
+                        <span class="status-badge status-active">نشط</span>
+                    </div>
+                    <h3 class="page-title">إدارة المستخدمين</h3>
+                    <p class="page-description">عرض وإدارة جميع المستخدمين والحسابات</p>
+                    <div class="page-footer">
+                        <code class="page-path">/admin/user-management</code>
+                        <span class="visit-link">← زيارة</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-card admin-page">
+                <div class="page-content">
+                    <div class="page-header">
+                        <div class="page-icon">🔤</div>
+                        <span class="status-badge status-active">نشط</span>
+                    </div>
+                    <h3 class="page-title">إدارة الكلمات المفتاحية</h3>
+                    <p class="page-description">إدارة ومراقبة الكلمات الترندينغ</p>
+                    <div class="page-footer">
+                        <code class="page-path">/admin/keyword-management</code>
+                        <span class="visit-link">← زيارة</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-card admin-page">
+                <div class="page-content">
+                    <div class="page-header">
+                        <div class="page-icon">📈</div>
+                        <span class="status-badge status-active">نشط</span>
+                    </div>
+                    <h3 class="page-title">مراقبة الترندات</h3>
+                    <p class="page-description">مراقبة وتحليل الترندات الحالية</p>
+                    <div class="page-footer">
+                        <code class="page-path">/trend-monitoring</code>
+                        <span class="visit-link">← زيارة</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Test Pages -->
+            <div class="page-card test-page">
+                <div class="page-content">
+                    <div class="page-header">
+                        <div class="page-icon">📧</div>
+                        <span class="status-badge status-test">اختبار</span>
+                    </div>
+                    <h3 class="page-title">اختبار توليد البريد الإلكتروني</h3>
+                    <p class="page-description">اختبار نظام توليد البريد الإلكتروني التلقائي</p>
+                    <div class="page-footer">
+                        <code class="page-path">/test-email-generation</code>
+                        <span class="visit-link">← زيارة</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-card test-page">
+                <div class="page-content">
+                    <div class="page-header">
+                        <div class="page-icon">🔐</div>
+                        <span class="status-badge status-test">اختبار</span>
+                    </div>
+                    <h3 class="page-title">اختبار التحقق</h3>
+                    <p class="page-description">اختبار نظام التحقق وتسجيل الدخول</p>
+                    <div class="page-footer">
+                        <code class="page-path">/test-auth</code>
+                        <span class="visit-link">← زيارة</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-card test-page">
+                <div class="page-content">
+                    <div class="page-header">
+                        <div class="page-icon">📝</div>
+                        <span class="status-badge status-test">اختبار</span>
+                    </div>
+                    <h3 class="page-title">اختبار التسجيل</h3>
+                    <p class="page-description">اختبار عملية إنشاء الحسابات الجديدة</p>
+                    <div class="page-footer">
+                        <code class="page-path">/test-registration</code>
+                        <span class="visit-link">← زيارة</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-card test-page">
+                <div class="page-content">
+                    <div class="page-header">
+                        <div class="page-icon">🔄</div>
+                        <span class="status-badge status-test">اختبار</span>
+                    </div>
+                    <h3 class="page-title">اختبار استعادة الحساب</h3>
+                    <p class="page-description">اختبار نظام استعادة الحسابات المفقودة</p>
+                    <div class="page-footer">
+                        <code class="page-path">/test-account-recovery</code>
+                        <span class="visit-link">← زيارة</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-card test-page">
+                <div class="page-content">
+                    <div class="page-header">
+                        <div class="page-icon">📬</div>
+                        <span class="status-badge status-test">اختبار</span>
+                    </div>
+                    <h3 class="page-title">اختبار بريد الاستعادة</h3>
+                    <p class="page-description">اختبار إرسال رسائل استعادة الحساب</p>
+                    <div class="page-footer">
+                        <code class="page-path">/test-recovery-email</code>
+                        <span class="visit-link">← زيارة</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-card test-page">
+                <div class="page-content">
+                    <div class="page-header">
+                        <div class="page-icon">🔔</div>
+                        <span class="status-badge status-test">اختبار</span>
+                    </div>
+                    <h3 class="page-title">اختبار الإشعارات</h3>
+                    <p class="page-description">اختبار نظام الإشعارات والتنبيهات</p>
+                    <div class="page-footer">
+                        <code class="page-path">/test-notifications</code>
+                        <span class="visit-link">← زيارة</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-card test-page">
+                <div class="page-content">
+                    <div class="page-header">
+                        <div class="page-icon">⭐</div>
+                        <span class="status-badge status-test">اختبار</span>
+                    </div>
+                    <h3 class="page-title">اختبار نظام النقاط</h3>
+                    <p class="page-description">اختبار عمل نظام النقاط والمكافآت</p>
+                    <div class="page-footer">
+                        <code class="page-path">/test-points-system</code>
+                        <span class="visit-link">← زيارة</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-card test-page">
+                <div class="page-content">
+                    <div class="page-header">
+                        <div class="page-icon">📄</div>
+                        <span class="status-badge status-test">اختبار</span>
+                    </div>
+                    <h3 class="page-title">اختبار API المنشورات</h3>
+                    <p class="page-description">اختبار واجهات برمجة تطبيقات المنشورات</p>
+                    <div class="page-footer">
+                        <code class="page-path">/test-posts-api</code>
+                        <span class="visit-link">← زيارة</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-card test-page">
+                <div class="page-content">
+                    <div class="page-header">
+                        <div class="page-icon">📊</div>
+                        <span class="status-badge status-test">اختبار</span>
+                    </div>
+                    <h3 class="page-title">اختبار الكلمات الترندينغ</h3>
+                    <p class="page-description">اختبار نظام رصد الكلمات الشائعة</p>
+                    <div class="page-footer">
+                        <code class="page-path">/test-trending-keywords</code>
+                        <span class="visit-link">← زيارة</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-card test-page">
+                <div class="page-content">
+                    <div class="page-header">
+                        <div class="page-icon">📈</div>
+                        <span class="status-badge status-test">اختبار</span>
+                    </div>
+                    <h3 class="page-title">اختبار تكرار الكلمات</h3>
+                    <p class="page-description">اختبار نظام تتبع تكرار الكلمات</p>
+                    <div class="page-footer">
+                        <code class="page-path">/test-keyword-occurrences</code>
+                        <span class="visit-link">← زيارة</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-card test-page">
+                <div class="page-content">
+                    <div class="page-header">
+                        <div class="page-icon">🔍</div>
+                        <span class="status-badge status-test">اختبار</span>
+                    </div>
+                    <h3 class="page-title">اختبار استخراج الكلمات</h3>
+                    <p class="page-description">اختبار نظام استخراج الكلمات التلقائي</p>
+                    <div class="page-footer">
+                        <code class="page-path">/test-auto-keyword-extraction</code>
+                        <span class="visit-link">← زيارة</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-card test-page">
+                <div class="page-content">
+                    <div class="page-header">
+                        <div class="page-icon">🎨</div>
+                        <span class="status-badge status-test">اختبار</span>
+                    </div>
+                    <h3 class="page-title">معرض المكونات</h3>
+                    <p class="page-description">عرض جميع مكونات الواجهة المتاحة</p>
+                    <div class="page-footer">
+                        <code class="page-path">/components-showcase</code>
+                        <span class="visit-link">← زيارة</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-card test-page">
+                <div class="page-content">
+                    <div class="page-header">
+                        <div class="page-icon">⌨️</div>
+                        <span class="status-badge status-test">اختبار</span>
+                    </div>
+                    <h3 class="page-title">معرض حقول الإدخال</h3>
+                    <p class="page-description">عرض أنواع حقول الإدخال المختلفة</p>
+                    <div class="page-footer">
+                        <code class="page-path">/input-showcase</code>
+                        <span class="visit-link">← زيارة</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Info -->
+        <div id="categoryInfo" class="category-info">
+            <h2 id="categoryTitle" class="category-title"></h2>
+            <div id="categoryText" class="category-text"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentFilter = 'all';
+
+        function filterPages(category) {
+            currentFilter = category;
+            
+            // Update button styles
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Show/hide pages
+            const userPages = document.querySelectorAll('.user-page');
+            const adminPages = document.querySelectorAll('.admin-page');
+            const testPages = document.querySelectorAll('.test-page');
+            const categoryInfo = document.getElementById('categoryInfo');
+
+            // Hide all pages first
+            [...userPages, ...adminPages, ...testPages].forEach(page => {
+                page.classList.add('hidden');
+            });
+
+            // Show selected category pages
+            switch(category) {
+                case 'user':
+                    userPages.forEach(page => page.classList.remove('hidden'));
+                    showCategoryInfo('👤 صفحات المستخدمين', 
+                        'هذه الصفحات مخصصة للمستخدمين العاديين في المنصة. تشمل الصفحة الرئيسية، الملف الشخصي، التغذية، الرسائل، والإشعارات. جميع هذه الصفحات تتطلب تسجيل دخول باستثناء الصفحة الرئيسية وصفحة التسجيل.');
+                    break;
+                case 'admin':
+                    adminPages.forEach(page => page.classList.remove('hidden'));
+                    showCategoryInfo('👨‍💼 صفحات الإدارة', 
+                        'صفحات مخصصة للمشرفين والإدارة فقط. تتطلب صلاحيات خاصة للوصول إليها. تشمل إدارة المستخدمين، مراقبة الترندات، وإدارة الكلمات المفتاحية. هذه الصفحات محمية بنظام أذونات متقدم.');
+                    break;
+                case 'test':
+                    testPages.forEach(page => page.classList.remove('hidden'));
+                    showCategoryInfo('🧪 صفحات الاختبار', 
+                        'صفحات مخصصة لاختبار وتطوير ميزات المنصة. تُستخدم للتحقق من عمل الأنظمة المختلفة مثل التسجيل، الإشعارات، النقاط، والـ APIs. هذه الصفحات مفيدة للمطورين والمختبرين.');
+                    break;
+                default:
+                    [...userPages, ...adminPages, ...testPages].forEach(page => {
+                        page.classList.remove('hidden');
+                    });
+                    categoryInfo.classList.remove('show');
+            }
+        }
+
+        function showCategoryInfo(title, text) {
+            const categoryInfo = document.getElementById('categoryInfo');
+            const categoryTitle = document.getElementById('categoryTitle');
+            const categoryText = document.getElementById('categoryText');
+            
+            categoryTitle.textContent = title;
+            categoryText.textContent = text;
+            categoryInfo.classList.add('show');
+        }
+    </script>
+</body>
+</html>
