@@ -152,6 +152,9 @@ nehky.com/
 - `/components-showcase` - معرض المكونات
 - [المزيد...](http://localhost:3000/site-map)
 
+### 📱 خريطة الموقع على GitHub
+- **[خريطة الموقع الثابتة](SITE_MAP.html)** - دليل شامل لجميع الصفحات (يعمل مباشرة من GitHub)
+
 ## 🔧 الأوامر المفيدة
 
 ```bash
