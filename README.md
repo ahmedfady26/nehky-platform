@@ -153,7 +153,9 @@ nehky.com/
 - [المزيد...](http://localhost:3000/site-map)
 
 ### 📱 خريطة الموقع على GitHub
-- **[خريطة الموقع الثابتة](SITE_MAP.html)** - دليل شامل لجميع الصفحات (يعمل مباشرة من GitHub)
+- **[خريطة الموقع التفاعلية](https://raw.githubusercontent.com/ahmedfady26/nehky-platform/main/docs/index.html)** - دليل شامل تفاعلي
+- **[خريطة الموقع الثابتة](https://raw.githubusercontent.com/ahmedfady26/nehky-platform/main/SITE_MAP.html)** - نسخة احتياطية
+- **[مجلد Docs](https://github.com/ahmedfady26/nehky-platform/tree/main/docs)** - ملفات إضافية
 
 ## 🔧 الأوامر المفيدة
 
