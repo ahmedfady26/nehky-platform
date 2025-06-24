@@ -76,8 +76,8 @@
 
 1. **استنساخ المشروع**
 ```bash
-git clone https://github.com/[your-username]/nehky.com.git
-cd nehky.com
+git clone https://github.com/ahmedfady26/nehky-platform.git
+cd nehky-platform
 ```
 
 2. **تثبيت التبعيات**
@@ -203,7 +203,7 @@ npm run lint                   # فحص الكود
 
 - **البريد الإلكتروني**: contact@nehky.com
 - **موقع الويب**: [nehky.com](https://nehky.com)
-- **GitHub Issues**: [قائمة المشاكل](https://github.com/[your-username]/nehky.com/issues)
+- **GitHub Issues**: [قائمة المشاكل](https://github.com/ahmedfady26/nehky-platform/issues)
 
 ## 🙏 شكر وتقدير
 
