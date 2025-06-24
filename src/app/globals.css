@@ -1,0 +1,252 @@
+@import url('https://fonts.googleapis.com/css2?family=Cooper+Hewitt:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* تعريف الألوان والتدرجات المخصصة لمنصة نحكي */
+:root {
+  --foreground-rgb: 30, 41, 59;
+  --background-start-rgb: 219, 234, 254; /* أزرق فاتح */
+  --background-end-rgb: 187, 247, 208;   /* أخضر فاتح */
+  
+  /* تدرجات مخصصة للمنصة */
+  --nehky-primary: linear-gradient(135deg, #3B82F6 0%, #10B981 100%);
+  --nehky-secondary: linear-gradient(135deg, #6366F1 0%, #14B8A6 100%);
+  --nehky-accent: linear-gradient(135deg, #8B5CF6 0%, #06B6D4 100%);
+  --nehky-warm: linear-gradient(135deg, #F59E0B 0%, #EF4444 100%);
+  
+  /* ظلال مخصصة */
+  --nehky-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.1), 0 10px 10px -5px rgba(16, 185, 129, 0.04);
+  --nehky-shadow-lg: 0 25px 50px -12px rgba(59, 130, 246, 0.25), 0 0 0 1px rgba(16, 185, 129, 0.05);
+}
+
+/* دعم الوضع المظلم */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 248, 250, 252;
+    --background-start-rgb: 15, 23, 42;
+    --background-end-rgb: 30, 41, 59;
+  }
+}
+
+/* إعدادات الجسم الأساسية */
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(135deg, rgb(var(--background-start-rgb)) 0%, rgb(var(--background-end-rgb)) 100%);
+  direction: rtl;
+  font-family: 'Cairo', 'Tajawal', sans-serif;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* تأثيرات الحركة العامة */
+* {
+  transition: all 0.2s ease-in-out;
+}
+
+/* تأثيرات الهوفر العامة */
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--nehky-shadow-lg);
+}
+
+/* تأثيرات التحديد */
+::selection {
+  background: rgba(59, 130, 246, 0.2);
+  color: rgb(var(--foreground-rgb));
+}
+
+/* تأثيرات التركيز */
+.focus-ring:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+/* تأثيرات التمرير */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(148, 163, 184, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #3B82F6, #10B981);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #2563EB, #059669);
+}
+
+/* كلاسات مساعدة للتدرجات */
+.bg-nehky-primary {
+  background: var(--nehky-primary);
+}
+
+.bg-nehky-secondary {
+  background: var(--nehky-secondary);
+}
+
+.bg-nehky-accent {
+  background: var(--nehky-accent);
+}
+
+.bg-nehky-warm {
+  background: var(--nehky-warm);
+}
+
+.shadow-nehky {
+  box-shadow: var(--nehky-shadow);
+}
+
+.shadow-nehky-lg {
+  box-shadow: var(--nehky-shadow-lg);
+}
+
+/* تأثيرات الحركة المتقدمة */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse-soft {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.5s ease-out;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s infinite;
+}
+
+/* أنيميشنز مخصصة */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slideIn {
+  animation: slideIn 0.6s ease-out;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* أنيميشن للانتقال بين النماذج */
+.form-transition {
+  transition: all 0.3s ease-in-out;
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.form-enter {
+  transform: translateX(20px);
+  opacity: 0;
+}
+
+.form-exit {
+  transform: translateX(-20px);
+  opacity: 0;
+}
+
+/* تحسين زر التبديل */
+.tab-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.tab-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+
+.tab-button:hover::before {
+  left: 100%;
+}
+
+/* إضافة تأثير نبضة للأزرار المهمة */
+.pulse-green {
+  animation: pulse-green 2s infinite;
+}
+
+@keyframes pulse-green {
+  0% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+}

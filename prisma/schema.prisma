@@ -1,0 +1,924 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// نموذج المستخدم - البنية المحدثة حسب المطلوب
+model User {
+  id         String   @id @default(cuid()) // UUID/SERIAL - المفتاح الأساسي
+  username   String   @unique // VARCHAR - فريد ومطلوب
+  phone      String   @unique // phone_number - VARCHAR فريد ومطلوب (تم تغيير الاسم)
+  email      String   @unique // VARCHAR - فريد ومطلوب، يُولد تلقائياً إذا فارغ
+  password   String // password_hash - TEXT مطلوب (كلمة المرور المشفرة)
+  firstName  String // first_name - VARCHAR مطلوب
+  secondName String // middle_name - VARCHAR مطلوب (تم تغيير من اختياري)
+  thirdName  String // third_name - VARCHAR مطلوب (تم تغيير من اختياري)
+  lastName   String // last_name - VARCHAR مطلوب
+  fullName   String // full_name - TEXT يُولد تلقائياً (غير فريد)
+  birthDate  DateTime // birth_date - DATE مطلوب
+  age        Int? // العمر المحسوب (اختياري)
+  gender     String // String محدود بـ (male/female) مطلوب
+
+  // حقول إضافية للمنصة (اختيارية - للحفاظ على البيانات الموجودة)
+  nationality    String?
+  birthCountry   String?
+  currentCountry String?
+  graduationYear Int?
+  degree         String?
+  highSchool     String?
+  hobbies        String? // JSON string for array
+  interests      String? // JSON string for array
+
+  // معلومات الحساب
+  role           String  @default("USER") // USER, INFLUENCER, TOP_FOLLOWER
+  verified       Boolean @default(false)
+  followersCount Int     @default(0)
+  followingCount Int     @default(0)
+
+  // إيميل الاسترداد (جديد)
+  recoveryEmail String? // إيميل الاسترداد الاختياري
+
+  // البريد الإلكتروني الداخلي (جديد)
+  internalEmail String? @unique // البريد الداخلي (username@nehky.com)
+
+  // الصور والملفات
+  avatar     String?
+  coverImage String?
+
+  // التواريخ
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  lastLogin DateTime?
+
+  // العلاقات
+  posts               Post[]
+  comments            Comment[]
+  likes               Like[]
+  points              Point[]
+  influencerPosts     Post[]           @relation("InfluencerPosts")
+  influencerPoints    Point[]          @relation("InfluencerPoints")
+  nominations         Nomination[]     @relation("UserNominations")
+  receivedNominations Nomination[]     @relation("NominatedUser")
+  sentMessages        Message[]        @relation("SentMessages")
+  receivedMessages    Message[]        @relation("ReceivedMessages")
+  followers           Follow[]         @relation("UserFollowers")
+  following           Follow[]         @relation("UserFollowing")
+  sentEmails          InternalEmail[]  @relation("SentEmails")
+  receivedEmails      EmailRecipient[] @relation("ReceivedEmails")
+  emailLabels         EmailLabel[]     @relation("EmailLabels")
+  emailFolders        EmailFolder[]    @relation("EmailFolders")
+  emailSettings       EmailSettings?   @relation("EmailSettings")
+
+  // علاقات الترشيحات اليومية الجديدة
+  dailyNominations             DailyTopFollowerNomination[] @relation("DailyNominations")
+  dailyNominationsAsInfluencer DailyTopFollowerNomination[] @relation("DailyNominationsAsInfluencer")
+
+  // علاقات المنشورات الجديدة
+  shares             Share[] // المشاركات
+  postViews          PostView[] // مشاهدات المنشورات
+  keywordOccurrences KeywordOccurrence[] // تكرارات الكلمات للمستخدم
+
+  // علاقة الإدارة (إذا كان المستخدم إداري)
+  adminProfile Admin? // ملف الإداري إذا كان له صلاحيات إدارية
+
+  // العلاقات الجديدة
+  devices                     UserDevice[]        @relation("UserDevices") // أجهزة المستخدم
+  receivedAdminNotifications  AdminNotification[] @relation("ReceivedAdminNotifications") // الإشعارات المستلمة من الإدارة
+
+  @@map("users")
+}
+
+// نموذج المنشور
+model Post {
+  id      String @id @default(cuid()) // معرف المنشور - مفتاح أساسي
+  content String // محتوى المنشور - نص المنشور
+
+  // وسائط ومرفقات
+  images      String? // JSON string for array - روابط الصور
+  videos      String? // JSON string for array - روابط الفيديوهات  
+  attachments String? // JSON string for array - مرفقات أخرى (PDFs, docs, etc)
+  mediaUrls   String? // JSON string for array - روابط وسائط خارجية
+
+  // كلمات مفتاحية وهاشتاج
+  hashtags String? // JSON string for array - الهاشتاج (#تقنية، #رياضة)
+  keywords String? // JSON string for array - كلمات مفتاحية للبحث
+  tags     String? // JSON string for array - تصنيفات إضافية
+
+  // معلومات النشر
+  authorId String // معرف المستخدم الذي نشر
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  // إذا كان منشور من كبير متابعين
+  publishedForId String? // ID المؤثر الذي نُشر باسمه
+  publishedFor   User?   @relation("InfluencerPosts", fields: [publishedForId], references: [id])
+
+  // حالة المنشور
+  status     String @default("PUBLISHED") // DRAFT, PUBLISHED, ARCHIVED, DELETED
+  visibility String @default("PUBLIC") // PUBLIC, PRIVATE, FOLLOWERS_ONLY
+
+  // إعدادات المنشور
+  allowComments Boolean @default(true) // السماح بالتعليقات
+  allowLikes    Boolean @default(true) // السماح بالإعجابات
+  allowShares   Boolean @default(true) // السماح بالمشاركة
+
+  // معلومات تقنية
+  ipAddress String? // عنوان IP للنشر (للأمان)
+  userAgent String? // معلومات المتصفح
+  location  String? // الموقع الجغرافي (اختياري)
+
+  // الإحصائيات
+  likesCount    Int @default(0)
+  commentsCount Int @default(0)
+  sharesCount   Int @default(0)
+  viewsCount    Int @default(0) // عدد المشاهدات
+
+  // التواريخ
+  createdAt   DateTime  @default(now()) // تاريخ الإنشاء
+  updatedAt   DateTime  @updatedAt // تاريخ آخر تعديل
+  publishedAt DateTime? @default(now()) // تاريخ النشر (قد يختلف عن الإنشاء)
+
+  // العلاقات
+  comments           Comment[]
+  likes              Like[]
+  points             Point[]
+  shares             Share[] // المشاركات
+  views              PostView[] // المشاهدات
+  keywordOccurrences KeywordOccurrence[] // تكرارات الكلمات في هذا المنشور
+
+  @@index([authorId]) // فهرس لتحسين الاستعلامات
+  @@index([status]) // فهرس حالة المنشور
+  @@index([createdAt]) // فهرس التاريخ
+  @@index([publishedForId]) // فهرس منشورات المؤثرين
+  @@map("posts")
+}
+
+// نموذج التعليق
+model Comment {
+  id      String @id @default(cuid())
+  content String
+
+  // العلاقات
+  postId   String
+  post     Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  // التواريخ
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // النقاط
+  points Point[]
+
+  @@map("comments")
+}
+
+// نموذج الإعجاب
+model Like {
+  id String @id @default(cuid())
+
+  // العلاقات
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  // التاريخ
+  createdAt DateTime @default(now())
+
+  // النقاط
+  points Point[]
+
+  @@unique([userId, postId])
+  @@map("likes")
+}
+
+// نموذج النقاط المحدث
+model Point {
+  id     String @id @default(cuid())
+  points Int // عدد النقاط (5, 10, 20)
+  type   String // نوع النشاط: POST, COMMENT, LIKE
+
+  // العلاقات
+  userId String // المستخدم الذي حصل على النقاط
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  influencerId String // المؤثر الذي تم التفاعل معه
+  influencer   User   @relation("InfluencerPoints", fields: [influencerId], references: [id], onDelete: Cascade)
+
+  // مرجع النشاط (اختياري)
+  postId    String?
+  post      Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  commentId String?
+  comment   Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  likeId    String?
+  like      Like?    @relation(fields: [likeId], references: [id], onDelete: Cascade)
+
+  // التاريخ والصلاحية
+  createdAt DateTime @default(now())
+  expiresAt DateTime // تاريخ انتهاء الصلاحية (14 يوم من الإنشاء)
+  isValid   Boolean  @default(true) // للتحقق السريع من الصلاحية
+
+  @@map("points")
+}
+
+// نموذج الترشيح
+model Nomination {
+  id String @id @default(cuid())
+
+  // العلاقات
+  influencerId String // المؤثر الذي يرشح
+  influencer   User   @relation("UserNominations", fields: [influencerId], references: [id], onDelete: Cascade)
+
+  nominatedId String // المرشح
+  nominated   User   @relation("NominatedUser", fields: [nominatedId], references: [id], onDelete: Cascade)
+
+  // معلومات الترشيح
+  status    String   @default("PENDING") // PENDING, ACCEPTED, REJECTED, EXPIRED
+  postsLeft Int      @default(3) // المنشورات المتبقية
+  expiresAt DateTime // تاريخ انتهاء الصلاحية
+
+  // التواريخ
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([influencerId, nominatedId])
+  @@map("nominations")
+}
+
+// نموذج الرسائل
+model Message {
+  id      String  @id @default(cuid())
+  content String
+  images  String? // JSON string for array
+  files   String? // JSON string for array
+
+  // العلاقات
+  senderId String
+  sender   User   @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  receiverId String
+  receiver   User   @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  // حالة الرسالة
+  read   Boolean   @default(false)
+  readAt DateTime?
+
+  // التاريخ
+  createdAt DateTime @default(now())
+
+  @@map("messages")
+}
+
+// نموذج المتابعة
+model Follow {
+  id String @id @default(cuid())
+
+  // العلاقات
+  followerId String // المتابع
+  follower   User   @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+
+  followingId String // المتابَع
+  following   User   @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  // التاريخ
+  createdAt DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@map("follows")
+}
+
+// نموذج البريد الإلكتروني الداخلي
+model InternalEmail {
+  id String @id @default(cuid())
+
+  // معلومات البريد
+  from String // البريد المرسل (username@nehky.com)
+  to   String // البريد المستقبل (username@nehky.com أو متعدد مفصول بفاصلة)
+  cc   String? // نسخة كربونية
+  bcc  String? // نسخة كربونية مخفية
+
+  // محتوى البريد
+  subject     String // موضوع البريد
+  body        String // نص البريد (HTML/Plain Text)
+  attachments String? // مرفقات (JSON string for array)
+
+  // حالة البريد
+  status      String  @default("DRAFT") // DRAFT, SENT, DELIVERED, READ, ARCHIVED, DELETED
+  priority    String  @default("NORMAL") // LOW, NORMAL, HIGH, URGENT
+  isRead      Boolean @default(false)
+  isStarred   Boolean @default(false)
+  isImportant Boolean @default(false)
+
+  // معلومات إضافية
+  folder    String  @default("INBOX") // INBOX, SENT, DRAFTS, SPAM, TRASH, ARCHIVE, CUSTOM
+  threadId  String? // معرف المحادثة للرسائل المترابطة
+  replyToId String? // معرف الرسالة المرد عليها
+
+  // العلاقات
+  senderId String
+  sender   User   @relation("SentEmails", fields: [senderId], references: [id], onDelete: Cascade)
+
+  // التواريخ
+  sentAt    DateTime?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // العلاقات الفرعية
+  recipients EmailRecipient[]
+  labels     EmailLabel[]
+
+  @@map("internal_emails")
+}
+
+// نموذج مستقبلي البريد
+model EmailRecipient {
+  id String @id @default(cuid())
+
+  // معلومات المستقبل
+  emailId String
+  email   InternalEmail @relation(fields: [emailId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation("ReceivedEmails", fields: [userId], references: [id], onDelete: Cascade)
+
+  // نوع الاستقبال
+  type String // TO, CC, BCC
+
+  // حالة الاستقبال
+  isRead     Boolean @default(false)
+  isStarred  Boolean @default(false)
+  isArchived Boolean @default(false)
+  isDeleted  Boolean @default(false)
+
+  // التواريخ
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@unique([emailId, userId])
+  @@map("email_recipients")
+}
+
+// نموذج تصنيفات البريد
+model EmailLabel {
+  id String @id @default(cuid())
+
+  // معلومات التصنيف
+  name     String // اسم التصنيف
+  color    String  @default("#3B82F6") // لون التصنيف
+  isSystem Boolean @default(false) // تصنيف نظام أم مخصص
+
+  // العلاقات
+  userId String
+  user   User   @relation("EmailLabels", fields: [userId], references: [id], onDelete: Cascade)
+
+  emails InternalEmail[]
+
+  // التواريخ
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, name])
+  @@map("email_labels")
+}
+
+// نموذج إعدادات البريد
+model EmailSettings {
+  id String @id @default(cuid())
+
+  // إعدادات عامة
+  signature        String? // التوقيع
+  autoReply        Boolean @default(false) // الرد التلقائي
+  autoReplyMessage String? // رسالة الرد التلقائي
+
+  // إعدادات التنبيهات
+  notifyNewEmail    Boolean @default(true) // تنبيه بريد جديد
+  notifyImportant   Boolean @default(true) // تنبيه بريد مهم
+  soundNotification Boolean @default(true) // تنبيه صوتي
+
+  // إعدادات العرض
+  emailsPerPage       Int     @default(25) // عدد الرسائل في الصفحة
+  previewPane         Boolean @default(true) // لوحة المعاينة
+  threadConversations Boolean @default(true) // تجميع المحادثات
+
+  // إعدادات الأمان
+  blockExternalImages Boolean @default(true) // حجب الصور الخارجية
+  enableEncryption    Boolean @default(false) // تشفير الرسائل
+
+  // العلاقات
+  userId String @unique
+  user   User   @relation("EmailSettings", fields: [userId], references: [id], onDelete: Cascade)
+
+  // التواريخ
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("email_settings")
+}
+
+// نموذج مجلدات البريد المخصصة
+model EmailFolder {
+  id String @id @default(cuid())
+
+  // معلومات المجلد
+  name     String // اسم المجلد
+  icon     String? // أيقونة المجلد
+  color    String  @default("#6B7280") // لون المجلد
+  isSystem Boolean @default(false) // مجلد نظام أم مخصص
+  parentId String? // المجلد الأب (للمجلدات الفرعية)
+
+  // العلاقات
+  userId String
+  user   User   @relation("EmailFolders", fields: [userId], references: [id], onDelete: Cascade)
+
+  parent   EmailFolder?  @relation("SubFolders", fields: [parentId], references: [id])
+  children EmailFolder[] @relation("SubFolders")
+
+  // التواريخ
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, name])
+  @@map("email_folders")
+}
+
+// نموذج ترشيحات كبار المتابعين اليومية (جديد)
+model DailyTopFollowerNomination {
+  id String @id @default(cuid())
+
+  // العلاقات
+  userId String // المستخدم المرشح
+  user   User   @relation("DailyNominations", fields: [userId], references: [id], onDelete: Cascade)
+
+  influencerId String // المؤثر الذي تم ترشيحه له
+  influencer   User   @relation("DailyNominationsAsInfluencer", fields: [influencerId], references: [id], onDelete: Cascade)
+
+  // معلومات الترشيح
+  totalPoints    Int // إجمالي النقاط خلال الـ14 يوم الأخيرة
+  rank           Int // الترتيب (1, 2, 3)
+  nominationDate DateTime @default(now()) // تاريخ الترشيح
+
+  // صلاحية العرض
+  isActive  Boolean  @default(true)
+  expiresAt DateTime // ينتهي بعد 24 ساعة
+
+  // التواريخ
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, influencerId, nominationDate])
+  @@map("daily_top_follower_nominations")
+}
+
+// =================================================================
+// نظام الكلمات والهاشتاجات الشائعة - Trending Keywords System  
+// =================================================================
+
+// نموذج الكلمات الشائعة (Trending Keywords)
+model TrendingKeyword {
+  id String @id @default(cuid()) // معرف الكلمة الشائعة
+
+  // معلومات الكلمة
+  keyword           String  @unique // الكلمة/الهاشتاج نفسها
+  normalizedKeyword String // الكلمة منظفة للبحث (lowercase, no #)
+  type              String  @default("HASHTAG") // HASHTAG, KEYWORD, MENTION
+  category          String? // تصنيف الكلمة (تقنية، رياضة، ثقافة، إلخ)
+
+  // إحصائيات الشعبية
+  totalUsage   Int @default(0) // إجمالي الاستخدام منذ الإنشاء
+  dailyUsage   Int @default(0) // الاستخدام خلال آخر 24 ساعة
+  weeklyUsage  Int @default(0) // الاستخدام خلال آخر 7 أيام
+  monthlyUsage Int @default(0) // الاستخدام خلال آخر 30 يوم
+
+  // درجة الترند وحسابات الشعبية
+  trendScore    Float     @default(0.0) // درجة الترند المحسوبة (0-100)
+  velocityScore Float     @default(0.0) // سرعة الانتشار (معدل الزيادة)
+  peakUsage     Int       @default(0) // أعلى استخدام يومي سُجل
+  peakDate      DateTime? // تاريخ الذروة
+
+  // معلومات الترند
+  isCurrentlyTrending Boolean   @default(false) // هل ترند حالياً
+  trendRank           Int? // ترتيب الترند (1 = الأعلى)
+  trendStartDate      DateTime? // بداية فترة الترند
+  trendEndDate        DateTime? // نهاية فترة الترند (null إذا مازال ترند)
+
+  // معلومات إضافية للتحليل
+  sentiment       String? @default("NEUTRAL") // POSITIVE, NEGATIVE, NEUTRAL
+  language        String  @default("AR") // لغة الكلمة (AR, EN, mixed)
+  origin          String? // مصدر ظهور الكلمة (post_id أول ظهور)
+  relatedKeywords String? // كلمات مرتبطة (JSON array)
+
+  // إحصائيات التفاعل
+  postsCount    Int @default(0) // عدد المنشورات التي تحتويها
+  commentsCount Int @default(0) // عدد التعليقات التي تحتويها
+  likesCount    Int @default(0) // إجمالي الإعجابات على المحتوى المرتبط
+  sharesCount   Int @default(0) // إجمالي المشاركات على المحتوى المرتبط
+
+  // تتبع الفترات الزمنية
+  lastUsedAt        DateTime? // آخر استخدام للكلمة
+  lastCalculatedAt  DateTime  @default(now()) // آخر حساب لدرجة الترند
+  nextCalculationAt DateTime  @default(now()) // موعد الحساب التالي
+
+  // التواريخ الأساسية
+  firstSeenAt DateTime @default(now()) // أول ظهور للكلمة
+  createdAt   DateTime @default(now()) // تاريخ الإضافة للنظام
+  updatedAt   DateTime @updatedAt // آخر تحديث
+
+  // العلاقات
+  usageHistory       KeywordUsageHistory[] // تاريخ الاستخدام التفصيلي
+  keywordOccurrences KeywordOccurrence[] // جميع تكرارات هذه الكلمة
+  reviewLogs         TrendReviewLog[]    @relation("TrendReviews") // سجلات مراجعة الترند
+
+  @@index([keyword]) // فهرس الكلمة
+  @@index([normalizedKeyword]) // فهرس الكلمة المنظفة
+  @@index([trendScore]) // فهرس درجة الترند
+  @@index([trendRank]) // فهرس ترتيب الترند
+  @@index([isCurrentlyTrending]) // فهرس الترند الحالي
+  @@index([type]) // فهرس نوع الكلمة
+  @@index([dailyUsage]) // فهرس الاستخدام اليومي
+  @@index([lastUsedAt]) // فهرس آخر استخدام
+  @@index([createdAt]) // فهرس تاريخ الإنشاء
+  @@map("trending_keywords")
+}
+
+// نموذج سجل استخدام الكلمات (Keyword Usage History)
+model KeywordUsageHistory {
+  id String @id @default(cuid()) // معرف السجل
+
+  // العلاقات
+  keywordId String // معرف الكلمة الشائعة
+  keyword   TrendingKeyword @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+
+  // معلومات الاستخدام
+  date          DateTime @default(now()) // تاريخ الاستخدام (يوم كامل)
+  usageCount    Int      @default(0) // عدد مرات الاستخدام في هذا اليوم
+  uniqueUsers   Int      @default(0) // عدد المستخدمين الفريدين
+  postsCount    Int      @default(0) // عدد المنشورات
+  commentsCount Int      @default(0) // عدد التعليقات
+
+  // إحصائيات التفاعل لهذا اليوم
+  totalLikes  Int @default(0) // إجمالي الإعجابات
+  totalShares Int @default(0) // إجمالي المشاركات
+  totalViews  Int @default(0) // إجمالي المشاهدات
+
+  // معلومات السياق
+  hourlyDistribution String? // توزيع الاستخدام بالساعات (JSON)
+  topInfluencers     String? // أهم المؤثرين الذين استخدموها (JSON)
+  relatedPosts       String? // أهم المنشورات المرتبطة (JSON)
+
+  // درجة الترند لهذا اليوم
+  dailyTrendScore Float @default(0.0) // درجة الترند لهذا اليوم
+
+  // التواريخ
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([keywordId, date]) // فريد لكل كلمة ويوم
+  @@index([keywordId]) // فهرس معرف الكلمة
+  @@index([date]) // فهرس التاريخ
+  @@index([usageCount]) // فهرس عدد الاستخدام
+  @@index([dailyTrendScore]) // فهرس درجة الترند اليومية
+  @@map("keyword_usage_history")
+}
+
+// نموذج تكوين خوارزمية الترند (Trend Algorithm Configuration)
+model TrendAlgorithmConfig {
+  id String @id @default(cuid()) // معرف التكوين
+
+  // إعدادات حساب درجة الترند
+  dailyWeight    Float @default(0.5) // وزن الاستخدام اليومي
+  weeklyWeight   Float @default(0.3) // وزن الاستخدام الأسبوعي
+  monthlyWeight  Float @default(0.2) // وزن الاستخدام الشهري
+  velocityWeight Float @default(0.4) // وزن سرعة الانتشار
+
+  // عتبات الترند
+  minDailyUsage  Int   @default(5) // أقل استخدام يومي للترند
+  minUniqueUsers Int   @default(3) // أقل عدد مستخدمين فريدين
+  trendThreshold Float @default(20.0) // عتبة درجة الترند
+
+  // إعدادات التنظيف والصيانة
+  historyRetentionDays Int @default(90) // فترة الاحتفاظ بالسجل (أيام)
+  calculationInterval  Int @default(60) // فترة إعادة الحساب (دقائق)
+  maxTrendingKeywords  Int @default(50) // أقصى عدد كلمات ترند
+
+  // إعدادات الفلترة
+  excludedWords    String? // كلمات مستبعدة (JSON array)
+  blockedKeywords  String? // كلمات محظورة (JSON array)
+  minKeywordLength Int     @default(2) // أقل طول للكلمة
+  maxKeywordLength Int     @default(50) // أقصى طول للكلمة
+
+  // معلومات التكوين
+  isActive    Boolean @default(true) // هل التكوين نشط
+  description String? // وصف التكوين
+  version     String  @default("1.0") // إصدار الخوارزمية
+
+  // التواريخ
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("trend_algorithm_config")
+}
+
+// =================================================================
+// نهاية نظام الكلمات الشائعة
+// =================================================================
+
+// =================================================================
+// نماذج إضافية للمنشورات - Posts Additional Models
+// =================================================================
+
+// نموذج المشاركات (Share) - لتتبع مشاركة المنشورات
+model Share {
+  id     String @id @default(cuid()) // معرف المشاركة
+  userId String // معرف المستخدم الذي شارك
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId String // معرف المنشور المشارك
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  // معلومات المشاركة
+  shareType String  @default("REPOST") // REPOST, SHARE_LINK, QUOTE
+  comment   String? // تعليق على المشاركة
+
+  // معلومات تقنية
+  ipAddress String? // عنوان IP
+  platform  String? // المنصة المشارك عليها
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId]) // منع المشاركة المكررة
+  @@index([postId])
+  @@index([userId])
+  @@map("shares")
+}
+
+// نموذج مشاهدات المنشورات (PostView) - لتتبع المشاهدات
+model PostView {
+  id     String  @id @default(cuid()) // معرف المشاهدة
+  userId String? // معرف المستخدم (null للزوار)
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  postId String // معرف المنشور
+  post   Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  // معلومات المشاهدة
+  duration Int? // مدة المشاهدة بالثواني
+  viewType String @default("VIEW") // VIEW, CLICK, IMPRESSION
+
+  // معلومات تقنية
+  ipAddress String? // عنوان IP
+  userAgent String? // معلومات المتصفح
+  referer   String? // المصدر
+
+  createdAt DateTime @default(now())
+
+  @@index([postId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("post_views")
+}
+
+// نموذج تسجيل تكرارات الكلمات (KeywordOccurrence) - لتتبع مصدر كل كلمة شائعة بدقة
+model KeywordOccurrence {
+  id String @id @default(cuid()) // معرف التكرار الفريد
+
+  // الكلمة والمعلومات الأساسية
+  keyword           String // الكلمة/هاشتاج/منشن كما ظهرت
+  normalizedKeyword String // الكلمة منظفة (lowercase, no symbols)
+  type              String // HASHTAG, KEYWORD, MENTION
+  position          Int? // موقع الكلمة في النص (أول حرف)
+  context           String? // السياق المحيط بالكلمة (50 حرف قبل وبعد)
+
+  // العلاقات مع الكيانات الأخرى
+  postId String // معرف المنشور الذي تحتوي على الكلمة
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  userId String // معرف المستخدم (مؤلف المنشور)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  trendingKeywordId String? // ربط مع جدول الكلمات الشائعة (اختياري)
+  trendingKeyword   TrendingKeyword? @relation(fields: [trendingKeywordId], references: [id], onDelete: SetNull)
+
+  // ربط مع الإداري الذي سجل أو راجع هذا التكرار (اختياري)
+  recordedByAdminId String? // معرف الإداري الذي سجل أو راجع التكرار يدوياً
+  recordedByAdmin   Admin?  @relation("AdminRecordedOccurrences", fields: [recordedByAdminId], references: [id], onDelete: SetNull)
+
+  // معلومات إضافية للتحليل
+  sentiment String? @default("NEUTRAL") // POSITIVE, NEGATIVE, NEUTRAL
+  language  String  @default("AR") // AR, EN, MIXED
+  category  String? // تصنيف الكلمة (تقنية، رياضة، ثقافة)
+
+  // معلومات السياق والتفاعل
+  postStatus      String? // حالة المنشور وقت التسجيل
+  postVisibility  String? // رؤية المنشور (PUBLIC, PRIVATE, etc.)
+  authorRole      String? // دور المؤلف (USER, INFLUENCER, TOP_FOLLOWER)
+  authorVerified  Boolean? @default(false) // هل المؤلف موثق
+  authorFollowers Int?     @default(0) // عدد متابعي المؤلف وقت النشر
+
+  // معلومات تقنية
+  extractedBy String  @default("SYSTEM") // مصدر الاستخراج (SYSTEM, MANUAL, API)
+  ipAddress   String? // عنوان IP للمستخدم
+  userAgent   String? // معلومات المتصفح
+
+  // توقيت التكرار
+  occurredAt DateTime @default(now()) // وقت تسجيل الكلمة (عادة = وقت إنشاء المنشور)
+  createdAt  DateTime @default(now()) // وقت إضافة السجل للنظام
+
+  // معلومات إضافية للتحليل المتقدم
+  isOriginalPost  Boolean @default(true) // هل هو منشور أصلي أم مشاركة
+  interactionData String? // بيانات التفاعل كـ JSON (likes, shares, etc.)
+  geolocation     String? // الموقع الجغرافي (إذا متاح)
+
+  @@index([keyword]) // فهرس الكلمة للبحث السريع
+  @@index([normalizedKeyword]) // فهرس الكلمة المنظفة
+  @@index([postId]) // فهرس المنشور
+  @@index([userId]) // فهرس المستخدم
+  @@index([trendingKeywordId]) // فهرس الكلمة الشائعة
+  @@index([recordedByAdminId]) // فهرس الإداري المسجل
+  @@index([type]) // فهرس نوع الكلمة
+  @@index([occurredAt]) // فهرس وقت التكرار
+  @@index([createdAt]) // فهرس وقت الإنشاء
+  @@index([keyword, postId]) // فهرس مركب للبحث المتقدم
+  @@index([normalizedKeyword, type]) // فهرس مركب للتحليل
+  @@index([userId, occurredAt]) // فهرس مركب لتحليل المستخدم
+  @@index([recordedByAdminId, occurredAt]) // فهرس مركب للأنشطة الإدارية
+  @@map("keyword_occurrences")
+}
+
+// نموذج الإداريين (Admin) - لتتبع الأنشطة الإدارية
+model Admin {
+  id     String @id @default(cuid()) // معرف الإداري الفريد
+  userId String @unique // ربط مع جدول المستخدمين
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // معلومات الصلاحيات الإدارية
+  role        String  @default("ADMIN") // ADMIN, SUPER_ADMIN, MODERATOR
+  permissions String? // JSON string للصلاحيات المحددة
+  department  String? // القسم الإداري (content, users, keywords, system)
+
+  // معلومات إضافية
+  assignedBy   String? // من قام بتعيين هذا الإداري
+  assignedAt   DateTime @default(now()) // تاريخ التعيين
+  isActive     Boolean  @default(true) // هل الإداري نشط
+  lastActiveAt DateTime @default(now()) // آخر نشاط إداري
+
+  // ملاحظات ومعلومات إضافية
+  notes       String? // ملاحظات حول الإداري
+  accessLevel Int     @default(1) // مستوى الوصول (1-5)
+
+  // العلاقات - الأنشطة التي قام بها الإداري
+  recordedKeywordOccurrences KeywordOccurrence[] @relation("AdminRecordedOccurrences")
+  trendReviews               TrendReviewLog[]    @relation("AdminTrendReviews")
+  sentNotifications          AdminNotification[] @relation("AdminSentNotifications")
+
+  @@index([userId]) // فهرس المستخدم
+  @@index([role]) // فهرس الدور
+  @@index([isActive]) // فهرس الحالة النشطة
+  @@index([lastActiveAt]) // فهرس آخر نشاط
+  @@map("admins")
+}
+
+// =================================================================
+// الجداول الجديدة المطلوبة - New Required Tables
+// =================================================================
+
+// 1️⃣ جدول سجل مراجعة الترندات – trend_review_logs
+model TrendReviewLog {
+  id String @id @default(cuid()) // معرف السجل
+
+  // العلاقات
+  adminId String // معرف الأدمن
+  admin   Admin  @relation("AdminTrendReviews", fields: [adminId], references: [id], onDelete: Cascade)
+
+  keywordId String // الكلمة المعنية
+  keyword   TrendingKeyword @relation("TrendReviews", fields: [keywordId], references: [id], onDelete: Cascade)
+
+  // نوع الإجراء والتفاصيل
+  actionTaken String // نوع الإجراء: BLOCK, PIN, POSTPONE, APPROVE, REJECT, EDIT
+  notes       String? // ملاحظات اختيارية
+
+  // معلومات إضافية عن الإجراء
+  previousStatus String? // الحالة السابقة للكلمة
+  newStatus      String? // الحالة الجديدة للكلمة
+  reason         String? // سبب الإجراء
+  duration       Int? // مدة الإجراء (بالساعات) إذا كان مؤقت
+
+  // معلومات تقنية
+  ipAddress String? // عنوان IP للإداري
+  userAgent String? // معلومات المتصفح
+
+  // التواريخ
+  timestamp DateTime @default(now()) // وقت الإجراء
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([adminId]) // فهرس الإداري
+  @@index([keywordId]) // فهرس الكلمة
+  @@index([actionTaken]) // فهرس نوع الإجراء
+  @@index([timestamp]) // فهرس الوقت
+  @@index([adminId, timestamp]) // فهرس مركب للأنشطة الإدارية
+  @@map("trend_review_logs")
+}
+
+// 2️⃣ جدول معلومات الأجهزة – user_devices
+model UserDevice {
+  id String @id @default(cuid()) // معرف السجل
+
+  // العلاقات
+  userId String // المستخدم
+  user   User   @relation("UserDevices", fields: [userId], references: [id], onDelete: Cascade)
+
+  // معلومات الجهاز
+  deviceType String // DESKTOP, MOBILE, TABLET
+  os         String? // نظام التشغيل (Windows, macOS, iOS, Android, Linux)
+  browser    String? // نوع المتصفح (Chrome, Safari, Firefox, Edge)
+  
+  // تفاصيل تقنية
+  userAgent    String? // User-Agent الكامل
+  screenWidth  Int? // عرض الشاشة
+  screenHeight Int? // ارتفاع الشاشة
+  language     String? // لغة المتصفح
+  timezone     String? // المنطقة الزمنية
+
+  // معلومات الشبكة والموقع
+  ipAddress String? // عنوان IP
+  country   String? // البلد
+  city      String? // المدينة
+  isp       String? // مزود الخدمة
+
+  // معلومات إضافية
+  isFirstTime Boolean @default(false) // هل هو أول تسجيل دخول من هذا الجهاز
+  deviceName  String? // اسم الجهاز (إذا متوفر)
+  
+  // التواريخ
+  loginTime  DateTime @default(now()) // وقت تسجيل الدخول
+  lastUsedAt DateTime @default(now()) // آخر استخدام للجهاز
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId]) // فهرس المستخدم
+  @@index([deviceType]) // فهرس نوع الجهاز
+  @@index([os]) // فهرس نظام التشغيل
+  @@index([browser]) // فهرس المتصفح
+  @@index([loginTime]) // فهرس وقت الدخول
+  @@index([userId, deviceType]) // فهرس مركب للتحليل
+  @@index([country]) // فهرس البلد
+  @@map("user_devices")
+}
+
+// 3️⃣ جدول رسائل الأدمن – admin_notifications
+model AdminNotification {
+  id String @id @default(cuid()) // معرف الرسالة
+
+  // العلاقات
+  adminId String // الأدمن المُرسل
+  admin   Admin  @relation("AdminSentNotifications", fields: [adminId], references: [id], onDelete: Cascade)
+
+  receiverUserId String // المستخدم المستقبل
+  receiverUser   User   @relation("ReceivedAdminNotifications", fields: [receiverUserId], references: [id], onDelete: Cascade)
+
+  // محتوى الرسالة
+  title   String  // عنوان الرسالة
+  message String  // نص الرسالة
+  type    String  @default("INFO") // INFO, WARNING, SUCCESS, ERROR, ANNOUNCEMENT
+
+  // معلومات إضافية
+  priority    String @default("NORMAL") // LOW, NORMAL, HIGH, URGENT
+  category    String? // تصنيف الرسالة (account, content, violation, system)
+  actionUrl   String? // رابط إجراء مطلوب
+  actionLabel String? // نص زر الإجراء
+
+  // حالة الرسالة
+  status     String   @default("SENT") // SENT, DELIVERED, READ, ARCHIVED
+  isRead     Boolean  @default(false)
+  readAt     DateTime?
+  isArchived Boolean  @default(false)
+  archivedAt DateTime?
+
+  // معلومات تقنية
+  ipAddress String? // عنوان IP للإداري المرسل
+  userAgent String? // معلومات متصفح الإداري
+
+  // التواريخ
+  sentAt    DateTime @default(now()) // وقت الإرسال
+  expiresAt DateTime? // تاريخ انتهاء الصلاحية (للإعلانات المؤقتة)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([adminId]) // فهرس الإداري المرسل
+  @@index([receiverUserId]) // فهرس المستخدم المستقبل
+  @@index([status]) // فهرس حالة الرسالة
+  @@index([type]) // فهرس نوع الرسالة
+  @@index([priority]) // فهرس الأولوية
+  @@index([sentAt]) // فهرس وقت الإرسال
+  @@index([isRead]) // فهرس حالة القراءة
+  @@index([receiverUserId, isRead]) // فهرس مركب للرسائل غير المقروءة
+  @@index([adminId, sentAt]) // فهرس مركب لأنشطة الإداري
+  @@map("admin_notifications")
+}

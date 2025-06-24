@@ -1,0 +1,18 @@
+{
+  "name": "nehky-notifications-server",
+  "version": "1.0.0",
+  "description": "خادم الإشعارات اللحظية لمنصة نحكي",
+  "main": "notifications-server.js",
+  "scripts": {
+    "start": "node notifications-server.js",
+    "dev": "nodemon notifications-server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.5",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
