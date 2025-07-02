@@ -3,8 +3,6 @@ name: Deploy Next.js to GitHub Pages
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 # Allow one concurrent deployment
 concurrency:
@@ -35,7 +33,7 @@ jobs:
         cache: 'npm'
     
     - name: Install dependencies
-      run: npm ci
+      run: npm install
     
     - name: Setup Pages
       uses: actions/configure-pages@v4
@@ -47,6 +45,7 @@ jobs:
         npm run build
       env:
         NODE_ENV: production
+        DATABASE_URL: "postgresql://fake:fake@fake:5432/fake"
     
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
