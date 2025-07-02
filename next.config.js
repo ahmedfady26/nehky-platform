@@ -2,8 +2,9 @@
 const nextConfig = {
   output: 'export',
   trailingSlash: true,
-  basePath: '/nehky-platform',
-  assetPrefix: '/nehky-platform/',
+  // Removed basePath for testing
+  // basePath: '/nehky-platform',
+  // assetPrefix: '/nehky-platform/',
   images: {
     unoptimized: true,
     domains: ['localhost'],
