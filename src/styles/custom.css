@@ -1,0 +1,333 @@
+/* أنماط نحكي المخصصة */
+
+/* الألوان الأساسية */
+:root {
+  --nehky-primary: #059669;
+  --nehky-primary-light: #10b981;
+  --nehky-primary-dark: #047857;
+  --nehky-secondary: #7c3aed;
+  --nehky-secondary-light: #8b5cf6;
+  --nehky-secondary-dark: #6d28d9;
+  --nehky-accent: #f59e0b;
+  --nehky-success: #10b981;
+  --nehky-warning: #f59e0b;
+  --nehky-error: #ef4444;
+  --nehky-gray: #6b7280;
+  --nehky-gray-light: #f3f4f6;
+  --nehky-gray-dark: #374151;
+}
+
+/* الكلاسات المساعدة */
+.nehky-text-primary {
+  color: var(--nehky-primary);
+}
+
+.nehky-text-secondary {
+  color: var(--nehky-secondary);
+}
+
+.nehky-text-gradient {
+  background: linear-gradient(135deg, var(--nehky-primary), var(--nehky-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.nehky-bg-primary {
+  background-color: var(--nehky-primary);
+}
+
+.nehky-bg-secondary {
+  background-color: var(--nehky-secondary);
+}
+
+.nehky-bg-gradient {
+  background: linear-gradient(135deg, var(--nehky-primary), var(--nehky-secondary));
+}
+
+/* أنماط البطاقات */
+.nehky-card {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  transition: all 0.3s ease;
+}
+
+.nehky-card:hover {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+/* أنماط الأزرار */
+.nehky-btn-primary {
+  background: linear-gradient(135deg, var(--nehky-primary), var(--nehky-secondary));
+  color: white;
+  border: none;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+}
+
+.nehky-btn-primary:hover {
+  background: linear-gradient(135deg, var(--nehky-primary-dark), var(--nehky-secondary-dark));
+  box-shadow: 0 6px 16px rgba(5, 150, 105, 0.4);
+  transform: translateY(-1px);
+}
+
+.nehky-btn-primary:focus {
+  outline: none;
+  ring: 2px;
+  ring-color: var(--nehky-primary);
+  ring-offset: 2px;
+}
+
+.nehky-btn-secondary {
+  background: transparent;
+  color: var(--nehky-primary);
+  border: 2px solid var(--nehky-primary);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.nehky-btn-secondary:hover {
+  background: var(--nehky-primary);
+  color: white;
+  transform: translateY(-1px);
+}
+
+/* أنماط حقول الإدخال */
+.nehky-input {
+  border: 2px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: white;
+  color: #374151;
+  width: 100%;
+}
+
+.nehky-input:focus {
+  outline: none;
+  border-color: var(--nehky-primary);
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+  color: #1f2937;
+}
+
+.nehky-input:hover {
+  border-color: var(--nehky-primary-light);
+}
+
+.nehky-input::placeholder {
+  color: #9ca3af;
+}
+
+/* تحسينات إضافية للنص في جميع حقول الإدخال */
+input[type="text"],
+input[type="email"], 
+input[type="tel"],
+input[type="password"],
+input[type="search"] {
+  color: #374151 !important;
+  background-color: white !important;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="tel"]:focus,
+input[type="password"]:focus,
+input[type="search"]:focus {
+  color: #1f2937 !important;
+}
+
+/* إصلاح لون النص في حقول الهاتف */
+.phone-input input {
+  color: #374151 !important;
+  background: white !important;
+}
+
+/* إصلاح لون النص في الحقول المخصصة */
+.nehky-input,
+.nehky-input:focus,
+.nehky-input:active {
+  color: #374151 !important;
+  -webkit-text-fill-color: #374151 !important;
+}
+
+/* إصلاح الـ autofill */
+.nehky-input:-webkit-autofill,
+.nehky-input:-webkit-autofill:hover,
+.nehky-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #374151 !important;
+  -webkit-box-shadow: 0 0 0px 1000px white inset !important;
+  box-shadow: 0 0 0px 1000px white inset !important;
+}
+
+/* أنماط التنبيهات */
+.nehky-alert {
+  padding: 1rem;
+  border-radius: 0.75rem;
+  margin: 0.5rem 0;
+  font-weight: 500;
+}
+
+.nehky-alert-success {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #10b981;
+}
+
+.nehky-alert-warning {
+  background: #fffbeb;
+  color: #92400e;
+  border: 1px solid #f59e0b;
+}
+
+.nehky-alert-error {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #ef4444;
+}
+
+.nehky-alert-info {
+  background: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #3b82f6;
+}
+
+/* تحسينات النصوص العربية */
+.rtl-text {
+  direction: rtl;
+  text-align: right;
+}
+
+.ltr-text {
+  direction: ltr;
+  text-align: left;
+}
+
+/* أنماط التحميل */
+.nehky-loading {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* أنماط الشعار */
+.nehky-logo {
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+}
+
+/* تحسينات الاستجابة للجوال */
+@media (max-width: 768px) {
+  .nehky-card {
+    border-radius: 0.75rem;
+    margin: 0.5rem;
+  }
+  
+  .nehky-input {
+    padding: 0.875rem 1rem;
+    font-size: 16px; /* منع التكبير في iOS */
+  }
+  
+  .nehky-btn-primary,
+  .nehky-btn-secondary {
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+  }
+}
+
+/* تحسينات إمكانية الوصول */
+.nehky-btn-primary:focus-visible,
+.nehky-btn-secondary:focus-visible,
+.nehky-input:focus-visible {
+  outline: 2px solid var(--nehky-primary);
+  outline-offset: 2px;
+}
+
+/* أنماط الانتقالات */
+.nehky-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* أنماط الظلال */
+.nehky-shadow-sm {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.nehky-shadow {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.nehky-shadow-lg {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.nehky-shadow-xl {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+/* أنماط الحدود */
+.nehky-border {
+  border: 1px solid #e5e7eb;
+}
+
+.nehky-border-primary {
+  border: 1px solid var(--nehky-primary);
+}
+
+.nehky-border-secondary {
+  border: 1px solid var(--nehky-secondary);
+}
+
+/* تحسينات للطباعة */
+@media print {
+  .nehky-card {
+    box-shadow: none;
+    border: 1px solid #ccc;
+  }
+  
+  .nehky-bg-gradient,
+  .nehky-btn-primary {
+    background: var(--nehky-primary) !important;
+    color: white !important;
+  }
+}
+
+/* تحسينات خاصة لحقول مكونات التسجيل */
+.phone-number-input input,
+.password-input input,
+.name-field input,
+.username-input input,
+.email-input input {
+  color: #374151 !important;
+  background: white !important;
+}
+
+/* تحسين النص في القوائم المنسدلة */
+select,
+.dropdown-input {
+  color: #374151 !important;
+  background: white !important;
+}
+
+/* تحسين النص في منطقة النص */
+textarea {
+  color: #374151 !important;
+  background: white !important;
+}

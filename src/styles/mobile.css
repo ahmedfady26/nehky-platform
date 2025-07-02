@@ -1,0 +1,155 @@
+/* تحسينات خاصة بالجوال */
+
+/* تحسينات التمرير الأفقي */
+.overflow-x-auto {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.overflow-x-auto::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* تحسينات التفاعل اللمسي */
+@media (max-width: 768px) {
+  /* تحسين أحجام الأزرار للجوال */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* تحسين المسافات */
+  .mobile-padding {
+    padding: 1rem;
+  }
+  
+  /* تحسين الخط */
+  .mobile-text-sm {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+  
+  .mobile-text-base {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+  
+  .mobile-text-lg {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+  }
+  
+  /* تحسين البطاقات */
+  .mobile-card {
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* تحسين الانتقالات */
+  .mobile-transition {
+    transition: all 0.2s ease-in-out;
+  }
+  
+  /* تحسين الحقول */
+  .mobile-input {
+    font-size: 16px; /* منع التكبير في iOS */
+  }
+  
+  /* تحسين التنقل */
+  .mobile-nav {
+    padding: 0.5rem 1rem;
+  }
+  
+  /* تحسين الأزرار */
+  .mobile-button {
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 500;
+  }
+  
+  .mobile-button-sm {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* تحسينات للشاشات الصغيرة جداً */
+@media (max-width: 475px) {
+  .ultra-mobile-text {
+    font-size: 0.75rem;
+  }
+  
+  .ultra-mobile-padding {
+    padding: 0.5rem;
+  }
+  
+  .ultra-mobile-gap {
+    gap: 0.5rem;
+  }
+}
+
+/* تحسينات للشاشات اللمسية */
+@media (hover: none) and (pointer: coarse) {
+  /* إزالة hover effects على الأجهزة اللمسية */
+  .hover-effect:hover {
+    transform: none;
+  }
+  
+  /* تحسين الأزرار للمس */
+  .touch-button {
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+  }
+  
+  /* تحسين focus للوحة المفاتيح */
+  .focus-visible:focus {
+    outline: 2px solid #059669;
+    outline-offset: 2px;
+  }
+}
+
+/* تحسينات لوضع landscape على الجوال */
+@media (max-width: 768px) and (orientation: landscape) {
+  .landscape-padding {
+    padding: 0.5rem 1rem;
+  }
+  
+  .landscape-text {
+    font-size: 0.875rem;
+  }
+}
+
+/* تحسينات للشاشات عالية الكثافة */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .high-dpi-border {
+    border-width: 0.5px;
+  }
+}
+
+/* تحسينات للوضع المظلم (إذا تم تفعيله لاحقاً) */
+@media (prefers-color-scheme: dark) {
+  .dark-mode-ready {
+    background-color: #1f2937;
+    color: #f9fafb;
+  }
+}
+
+/* تحسينات إمكانية الوصول */
+@media (prefers-reduced-motion: reduce) {
+  .motion-reduce {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* تحسينات للطباعة (إذا احتاج المستخدم طباعة الصفحة) */
+@media print {
+  .print-hidden {
+    display: none;
+  }
+  
+  .print-visible {
+    display: block;
+  }
+}

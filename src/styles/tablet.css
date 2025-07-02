@@ -1,0 +1,350 @@
+/* تحسينات خاصة بالتابلت والآيباد */
+
+/* ========== تحسينات التابلت العامة ========== */
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* تخطيط التابلت الأساسي */
+  .tablet-container {
+    max-width: 90%;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+  
+  .tablet-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+  
+  .tablet-flex {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    align-items: center;
+  }
+  
+  /* أحجام النصوص للتابلت */
+  .tablet-text-sm { font-size: 1rem; line-height: 1.5rem; }
+  .tablet-text-base { font-size: 1.125rem; line-height: 1.75rem; }
+  .tablet-text-lg { font-size: 1.25rem; line-height: 1.75rem; }
+  .tablet-text-xl { font-size: 1.5rem; line-height: 2rem; }
+  .tablet-text-2xl { font-size: 1.875rem; line-height: 2.25rem; }
+  
+  /* المسافات للتابلت */
+  .tablet-padding { padding: 1.5rem; }
+  .tablet-padding-x { padding-left: 1.5rem; padding-right: 1.5rem; }
+  .tablet-padding-y { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+  .tablet-margin { margin: 1.5rem; }
+  
+  /* الأزرار للتابلت */
+  .tablet-button {
+    padding: 1rem 2rem;
+    font-size: 1rem;
+    border-radius: 0.75rem;
+    min-height: 48px;
+    min-width: 120px;
+  }
+  
+  .tablet-button-large {
+    padding: 1.25rem 2.5rem;
+    font-size: 1.125rem;
+    min-height: 56px;
+    min-width: 150px;
+  }
+}
+
+/* ========== تحسينات آيباد محددة ========== */
+@media (min-width: 768px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 1.5) {
+  /* تحسينات خاصة بآيباد (Retina Display) */
+  .ipad-optimized {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* شريط التنقل للآيباد */
+  .ipad-navigation {
+    height: 64px;
+    padding: 0 2rem;
+  }
+  
+  .ipad-nav-item {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 0.5rem;
+  }
+  
+  /* البطاقات للآيباد */
+  .ipad-card {
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .ipad-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* ========== تحسينات اللمس للتابلت ========== */
+@media (pointer: coarse) and (min-width: 768px) {
+  /* أهداف اللمس الكبيرة للتابلت */
+  .tablet-touch-target {
+    min-height: 48px;
+    min-width: 48px;
+    padding: 0.75rem;
+  }
+  
+  /* مناطق التفاعل الموسعة */
+  .tablet-interactive-area {
+    padding: 1rem;
+    margin: 0.5rem;
+    border-radius: 0.75rem;
+  }
+  
+  /* إزالة hover effects على الأجهزة اللمسية */
+  .tablet-no-hover:hover {
+    transform: none;
+    background-color: initial;
+  }
+}
+
+/* ========== تخطيطات متقدمة للتابلت ========== */
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* تخطيط شريط جانبي + محتوى */
+  .tablet-sidebar-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 2rem;
+    min-height: 100vh;
+  }
+  
+  /* تخطيط ثلاثة أعمدة */
+  .tablet-three-column {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    gap: 1.5rem;
+  }
+  
+  /* تخطيط البطاقات */
+  .tablet-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    padding: 1.5rem;
+  }
+  
+  /* قوائم أفقية للتابلت */
+  .tablet-horizontal-list {
+    display: flex;
+    overflow-x: auto;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    scrollbar-width: thin;
+  }
+  
+  .tablet-horizontal-list::-webkit-scrollbar {
+    height: 6px;
+  }
+  
+  .tablet-horizontal-list::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+  }
+  
+  .tablet-horizontal-list::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+  }
+}
+
+/* ========== تحسينات الوضع الأفقي للتابلت ========== */
+@media (min-width: 768px) and (max-width: 1023px) and (orientation: landscape) {
+  .tablet-landscape-nav {
+    height: 56px;
+    padding: 0 1.5rem;
+  }
+  
+  .tablet-landscape-content {
+    padding: 1rem 2rem;
+  }
+  
+  .tablet-landscape-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+  
+  /* استغلال المساحة الأفقية */
+  .tablet-landscape-wide {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+/* ========== تحسينات الوضع العمودي للتابلت ========== */
+@media (min-width: 768px) and (max-width: 1023px) and (orientation: portrait) {
+  .tablet-portrait-nav {
+    height: 64px;
+    padding: 0 2rem;
+  }
+  
+  .tablet-portrait-content {
+    padding: 2rem;
+  }
+  
+  .tablet-portrait-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+  
+  /* تحسين للعرض العمودي */
+  .tablet-portrait-stack {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+}
+
+/* ========== تحسينات آيباد Pro ========== */
+@media (min-width: 1024px) and (max-width: 1366px) {
+  .ipad-pro-layout {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 3rem;
+  }
+  
+  .ipad-pro-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+  
+  .ipad-pro-text {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+  }
+  
+  /* شريط أدوات متقدم */
+  .ipad-pro-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 1rem;
+    margin: 1rem;
+  }
+}
+
+/* ========== تحسينات التفاعل المتقدم ========== */
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* دعم الإيماءات */
+  .tablet-swipe-area {
+    touch-action: pan-x;
+    user-select: none;
+  }
+  
+  /* دعم multi-touch */
+  .tablet-pinch-zoom {
+    touch-action: pinch-zoom;
+  }
+  
+  /* مناطق السحب والإفلات */
+  .tablet-drag-drop {
+    cursor: grab;
+    touch-action: none;
+  }
+  
+  .tablet-drag-drop:active {
+    cursor: grabbing;
+  }
+  
+  /* تأثيرات النقر */
+  .tablet-ripple {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .tablet-ripple::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+  }
+  
+  .tablet-ripple:active::after {
+    width: 300px;
+    height: 300px;
+  }
+}
+
+/* ========== تحسينات إمكانية الوصول للتابلت ========== */
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* focus indicators محسنة */
+  .tablet-focus:focus {
+    outline: 3px solid #059669;
+    outline-offset: 3px;
+    border-radius: 0.5rem;
+  }
+  
+  /* نصوص واضحة */
+  .tablet-readable {
+    font-size: 1.125rem;
+    line-height: 1.75;
+    letter-spacing: 0.025em;
+  }
+  
+  /* تباين عالي */
+  .tablet-high-contrast {
+    background: #ffffff;
+    color: #000000;
+    border: 2px solid #000000;
+  }
+}
+
+/* ========== استعلامات متقدمة للتابلت ========== */
+
+/* آيباد Mini */
+@media (min-width: 768px) and (max-width: 768px) {
+  .ipad-mini-optimized {
+    font-size: 0.9rem;
+    padding: 1rem;
+  }
+}
+
+/* آيباد عادي */
+@media (min-width: 769px) and (max-width: 820px) {
+  .ipad-standard-optimized {
+    font-size: 1rem;
+    padding: 1.25rem;
+  }
+}
+
+/* آيباد Air */
+@media (min-width: 821px) and (max-width: 834px) {
+  .ipad-air-optimized {
+    font-size: 1.1rem;
+    padding: 1.5rem;
+  }
+}
+
+/* آيباد Pro 11" */
+@media (min-width: 835px) and (max-width: 1024px) {
+  .ipad-pro-11-optimized {
+    font-size: 1.125rem;
+    padding: 1.75rem;
+  }
+}
+
+/* آيباد Pro 12.9" */
+@media (min-width: 1025px) and (max-width: 1366px) {
+  .ipad-pro-12-optimized {
+    font-size: 1.25rem;
+    padding: 2rem;
+  }
+}

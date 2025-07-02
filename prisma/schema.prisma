@@ -1,0 +1,2940 @@
+// قاعدة بيانات منصة نحكي - Nehky.com Social Media Platform
+// تم إنشاؤها في 27 يونيو 2025
+// قابلة للتوسعة لدعم الويب والموبايل والتابلت
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ========================================
+// 👥 المستخدمون - Users
+// ========================================
+
+model User {
+  id                 String    @id @default(uuid())
+  firstName          String    @map("first_name") // الاسم الأول
+  secondName         String?   @map("second_name") // الاسم الثاني (اختياري)
+  thirdName          String?   @map("third_name") // الاسم الثالث (اختياري)
+  lastName           String    @map("last_name") // اسم العائلة
+  fullName           String    @map("full_name") // الاسم الكامل (يتم تجميعه تلقائياً)
+  username           String    @unique
+  nehkyEmail         String    @unique @map("nehky_email") // Auto-generated: username@nehky.com
+  externalEmail      String?   @map("external_email") // Optional external email (Gmail, Yahoo, etc.)
+  phone              String    @unique // Must be unique across platform
+  phoneVerified      Boolean   @default(false) @map("phone_verified") // Phone verification status
+  otpCode            String?   @map("otp_code") // Current OTP code for phone verification
+  otpExpiresAt       DateTime? @map("otp_expires_at") // OTP expiration time
+  otpAttempts        Int       @default(0) @map("otp_attempts") // Number of OTP attempts
+  lastOtpSentAt      DateTime? @map("last_otp_sent_at") // Last time OTP was sent
+  passwordHash       String    @map("password_hash")
+  gender             Gender?
+  age                Int?
+  graduationYear     Int?      @map("graduation_year")
+  certificate        String?
+  highSchool         String?   @map("high_school")
+  nationality        String?
+  countryOfOrigin    String?   @map("country_of_origin")
+  countryOfResidence String?   @map("country_of_residence")
+  hobbies            String[] // Array of hobbies
+  interests          String[] // Array of interests
+  role               UserRole  @default(NORMAL)
+
+  // Additional fields for platform functionality
+  isVerified     Boolean   @default(false) @map("is_verified")
+  isInfluencer   Boolean   @default(false) @map("is_influencer") // Influencer from external platforms
+  profilePicture String?   @map("profile_picture")
+  coverPicture   String?   @map("cover_picture")
+  bio            String?
+  followersCount Int       @default(0) @map("followers_count")
+  followingCount Int       @default(0) @map("following_count")
+  postsCount     Int       @default(0) @map("posts_count")
+  isActive       Boolean   @default(true) @map("is_active")
+  lastSeenAt     DateTime? @map("last_seen_at")
+
+  // Registration security tracking
+  registrationIp        String? @map("registration_ip") // IP address during registration
+  registrationUserAgent String? @map("registration_user_agent") // User agent during registration
+  registrationGeo       String? @map("registration_geo") // Geographic location during registration
+  deviceFingerprint     String? @map("device_fingerprint") // Device fingerprint for security
+  referrerId            String? @map("referrer_id") // User who referred this user
+  fakeScore             Float   @default(0) @map("fake_score") // Probability of being a fake account (0-1)
+
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  lastActivity DateTime @default(now()) @map("last_activity") // آخر نشاط للمستخدم
+
+  // Relations
+  posts        Post[]
+  interactions Interaction[]
+  userScores   UserScore[]
+
+  // تحليلات الفيديو
+  videoViewSessions VideoViewSession[]
+
+  // نظام المتابعة
+  followers UserFollow[] @relation("UserFollowing") // من يتابعني
+  following UserFollow[] @relation("UserFollowers") // من أتابعهم
+
+  // Signatures
+  influencerSignatures UserSignature[] @relation("InfluencerSignatures")
+  followerSignatures   UserSignature[] @relation("FollowerSignatures")
+
+  // Nominations
+  influencerNominations Nomination[] @relation("InfluencerNominations")
+  candidateNominations  Nomination[] @relation("CandidateNominations")
+
+  // Video system
+  videoChannels VideoChannel[]
+
+  // Messaging
+  createdConversations Conversation[]       @relation("ConversationCreator")
+  conversationMembers  ConversationMember[]
+  sentMessages         Message[]
+
+  // Admin system
+  adminProfile Admin?
+
+  // Influencer external accounts
+  influencerAccounts InfluencerAccount[]
+
+  // Device tracking
+  loginSessions LoginSession[]
+
+  // Notifications
+  notifications Notification[]
+
+  // Reports
+  sentReports     Report[] @relation("Reporter")
+  reviewedReports Report[] @relation("Reviewer")
+
+  // User blocks
+  blockedByMe UserBlock[] @relation("Blocker")
+  blockedMe   UserBlock[] @relation("Blocked")
+
+  // Activity and interests
+  activityLogs ActivityLog[]
+
+  // Advanced tracking relations
+  scrollTrackings      UserScrollTracking[]      @relation("UserScrollTracking")
+  videoTrackings       UserVideoTracking[]       @relation("UserVideoTracking")
+  interactionTrackings UserInteractionTracking[] @relation("UserInteractionTracking")
+  smartProfiles        SmartUserProfile[]        @relation("UserSmartProfiles")
+
+  // Requests - will be added later
+  // sentRequests     PendingRequest[] @relation("Sender")
+  // receivedRequests PendingRequest[] @relation("Receiver")
+
+  // Security - will be added later
+  // securitySettings UserSecuritySetting?
+
+  // Detailed activity tracking - will be added later
+  // detailedActivityLogs DetailedActivityLog[] @relation("DetailedActivityUser")
+
+  // Post viewing tracking - will be added later
+  // postViews UserPostView[] @relation("UserPostViews")
+
+  // Interest system
+  interestProfile UserInterestProfile?
+  interestScores  UserInterestScore[]
+
+  // Post interest mapping
+  postInterestMappings UserPostInterestMapping[]
+
+  // الحملات الإعلانية التي أنشأها المستخدم
+  campaigns Campaign[]
+
+  // الاستهداف الإعلاني
+  sponsoredUserTargets SponsoredUserTarget[]
+
+  // نظام الدفع الإلكتروني - مُعطل مؤقتاً
+  // paymentMethods UserPaymentMethod[]  @relation("UserPaymentMethods")
+  // invoices       SponsoredAdInvoice[] @relation("UserInvoices")
+  // payments       OnlinePayment[]      @relation("UserPayments")
+
+  // نظام دفع المؤثرين - مُعطل مؤقتاً
+  // influencerContracts    InfluencerContract[]    @relation("InfluencerContracts")
+  // influencerEarnings     InfluencerEarning[]     @relation("InfluencerEarnings")
+  // influencerPaymentInfos InfluencerPaymentInfo[] @relation("InfluencerPaymentInfos")
+  // influencerPayments     InfluencerPayment[]     @relation("InfluencerPayments")
+  // influencerPerformances InfluencerPerformance[] @relation("InfluencerPerformances")
+
+  // Referral system
+  referrer          User?              @relation("UserReferral", fields: [referrerId], references: [id])
+  referredUsers     User[]             @relation("UserReferral")
+  referralAuditLogs ReferralAuditLog[] @relation("ReferralAuditLogs")
+  referrerAuditLogs ReferralAuditLog[] @relation("ReferrerAuditLogs")
+
+  // نظام الصديق الأفضل - Best Friend System
+  bestFriendAsUser1          BestFriendRelation[]          @relation("BestFriendUser1")
+  bestFriendAsUser2          BestFriendRelation[]          @relation("BestFriendUser2")
+  permissionRequestsSent     BestFriendPermissionRequest[] @relation("PermissionRequester")
+  permissionRequestsReceived BestFriendPermissionRequest[] @relation("PermissionApprover")
+  bestFriendActivities       BestFriendActivityLog[]       @relation("BestFriendActivities")
+
+  @@index([username])
+  @@index([nehkyEmail])
+  @@index([phone])
+  @@index([externalEmail])
+  @@index([role])
+  @@index([isActive])
+  @@index([isInfluencer])
+  @@index([createdAt])
+  @@index([lastSeenAt])
+  @@map("users")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+enum UserRole {
+  NORMAL
+  INFLUENCER
+  ADMIN
+}
+
+// Accountant System Enums
+enum AccountantRole {
+  JUNIOR_ACCOUNTANT // محاسب مبتدئ
+  SENIOR_ACCOUNTANT // محاسب معتمد
+  AUDITOR // مراجع
+  FINANCE_MANAGER // مدير مالي
+}
+
+// Financial System Enums
+enum ExpenseCategory {
+  OPERATIONS // تشغيل
+  MARKETING // تسويق
+  TAXES // ضرائب
+  SALARIES // رواتب
+  RENT // إيجار
+  UTILITIES // مرافق
+  EQUIPMENT // معدات
+  SOFTWARE // برمجيات
+  LEGAL // قانونية
+  CONSULTING // استشارات
+  TRAVEL // سفر
+  ENTERTAINMENT // ترفيه
+  INSURANCE // تأمين
+  MAINTENANCE // صيانة
+  OTHER // أخرى
+}
+
+enum RevenueSource {
+  SUBSCRIPTION // اشتراك
+  ADVERTISING // إعلان
+  SPONSORED_VIDEO // فيديو ممول
+  SPONSORED_POST // منشور ممول
+  PARTNERSHIP // شراكة
+  COMMISSION // عمولة
+  DONATION // تبرع
+  MERCHANDISE // بضائع
+  LICENSING // ترخيص
+  CONSULTATION // استشارة
+  OTHER // أخرى
+}
+
+enum PeriodType {
+  MONTHLY // شهري
+  QUARTERLY // ربع سنوي
+  SEMI_ANNUALLY // نصف سنوي
+  ANNUALLY // سنوي
+  CUSTOM // مخصص
+}
+
+enum TaxReportType {
+  VAT // ضريبة القيمة المضافة
+  INCOME_TAX // ضريبة الدخل
+  CORPORATE_TAX // ضريبة الشركات
+  WITHHOLDING_TAX // ضريبة استقطاع
+  COMBINED // مجمع
+}
+
+enum TaxReportStatus {
+  DRAFT // مسودة
+  SUBMITTED // تم الإرسال
+  PAID // تم السداد
+  APPROVED // تم الموافقة
+  REJECTED // مرفوض
+  UNDER_REVIEW // تحت المراجعة
+}
+
+// Online Payment System Enums
+enum PaymentGateway {
+  FAWRY // فوري
+  PAYMOB // باي موب
+  ACCEPT // أكسبت
+  VODAFONE_CASH // فودافون كاش
+  ORANGE_MONEY // أورانج موني
+  ETISALAT_CASH // اتصالات كاش
+  AMAN // أمان
+  MASARY // مصاري
+  BANK_TRANSFER // تحويل بنكي
+  CREDIT_CARD // بطاقة ائتمان
+  DEBIT_CARD // بطاقة خصم
+  DIGITAL_WALLET // محفظة رقمية
+  INSTALLMENTS // أقساط
+  OTHER // أخرى
+}
+
+enum PaymentMethodType {
+  CARD // بطاقة
+  WALLET // محفظة إلكترونية
+  BANK_ACCOUNT // حساب بنكي
+  MOBILE_PAYMENT // دفع موبايل
+  INSTALLMENT_PLAN // خطة أقساط
+}
+
+enum CardType {
+  VISA // فيزا
+  MASTERCARD // ماستركارد
+  AMERICAN_EXPRESS // أمريكان إكسبريس
+  MEEZA // ميزة
+  OTHER // أخرى
+}
+
+enum InvoiceStatus {
+  DRAFT // مسودة
+  SENT // تم الإرسال
+  VIEWED // تم العرض
+  PAID // تم الدفع
+  PARTIALLY_PAID // دفع جزئي
+  OVERDUE // متأخر
+  CANCELLED // ملغي
+  REFUNDED // مسترد
+}
+
+enum PaymentProcessorStatus {
+  PENDING // معلق
+  PROCESSING // قيد المعالجة
+  COMPLETED // مكتمل
+  FAILED // فشل
+  CANCELLED // ملغي
+  REFUNDED // مسترد
+  DISPUTED // متنازع عليه
+  EXPIRED // منتهي الصلاحية
+}
+
+// Influencer Payment System Enums
+enum InfluencerContractType {
+  PER_POST // لكل منشور
+  PER_VIDEO // لكل فيديو
+  MONTHLY_RETAINER // راتب شهري
+  CAMPAIGN_BASED // حسب الحملة
+  COMMISSION_BASED // حسب العمولة
+  PERFORMANCE_BASED // حسب الأداء
+  HYBRID // مختلط
+}
+
+enum ContractStatus {
+  DRAFT // مسودة
+  PENDING_APPROVAL // في انتظار الموافقة
+  ACTIVE // نشط
+  PAUSED // متوقف مؤقتاً
+  COMPLETED // مكتمل
+  CANCELLED // ملغي
+  EXPIRED // منتهي الصلاحية
+  TERMINATED // منهي
+}
+
+enum InfluencerPaymentStatus {
+  PENDING // معلق
+  APPROVED // موافق عليه
+  PROCESSING // قيد المعالجة
+  COMPLETED // مكتمل
+  FAILED // فشل
+  ON_HOLD // محجوز
+  DISPUTED // متنازع عليه
+  CANCELLED // ملغي
+}
+
+enum InfluencerPaymentMethod {
+  BANK_TRANSFER // تحويل بنكي
+  MOBILE_WALLET // محفظة موبايل
+  PAYPAL // باي بال
+  WISE // وايز (ترانسفر وايز)
+  WESTERN_UNION // ويسترن يونيون
+  VODAFONE_CASH // فودافون كاش
+  ORANGE_MONEY // أورانج موني
+  FAWRY // فوري
+  CHECK // شيك
+  CASH // نقداً
+  CRYPTO // عملة رقمية
+  OTHER // أخرى
+}
+
+enum CommissionType {
+  FIXED_AMOUNT // مبلغ ثابت
+  PERCENTAGE // نسبة مئوية
+  TIERED // متدرج حسب الأداء
+  BONUS_BASED // حسب المكافآت
+  MIXED // مختلط
+}
+
+// ========================================
+// 🌟 حسابات المؤثرين الخارجية - External Influencer Accounts
+// ========================================
+
+model InfluencerAccount {
+  id             String           @id @default(uuid())
+  userId         String           @map("user_id")
+  platformName   ExternalPlatform @map("platform_name")
+  platformLink   String           @map("platform_link")
+  followersCount Int              @default(0) @map("followers_count")
+
+  // Verification status
+  isVerified Boolean   @default(false) @map("is_verified")
+  verifiedAt DateTime? @map("verified_at")
+
+  // Activity tracking
+  isActive Boolean @default(true) @map("is_active")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, platformName]) // One account per platform per user
+  @@index([userId])
+  @@index([platformName])
+  @@index([followersCount])
+  @@index([isVerified])
+  @@index([isActive])
+  @@map("influencer_accounts")
+}
+
+enum ExternalPlatform {
+  INSTAGRAM
+  TIKTOK
+  YOUTUBE
+  TWITTER
+  FACEBOOK
+  SNAPCHAT
+  LINKEDIN
+  TELEGRAM
+  WHATSAPP
+  CLUBHOUSE
+  PINTEREST
+  REDDIT
+  TWITCH
+  OTHER
+}
+
+// ========================================
+// 📝 المنشورات والتفاعل والنقاط - Posts, Interactions & Scores
+// ========================================
+
+model Post {
+  id         String         @id @default(uuid())
+  userId     String         @map("user_id")
+  content    String
+  mediaUrl   String?        @map("media_url")
+  mediaType  MediaType?     @map("media_type")
+  visibility PostVisibility @default(PUBLIC)
+
+  // Counters
+  likesCount    Int @default(0) @map("likes_count")
+  commentsCount Int @default(0) @map("comments_count")
+  sharesCount   Int @default(0) @map("shares_count")
+  viewsCount    Int @default(0) @map("views_count")
+
+  // Status
+  isDeleted Boolean @default(false) @map("is_deleted")
+  isPinned  Boolean @default(false) @map("is_pinned")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  // Relations
+  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  interactions   Interaction[]
+  userScores     UserScore[]
+  hashtags       PostHashtag[]
+  reports        Report[]
+  classification PostClassification?
+
+  // Post analytics and user interest mapping
+  attractiveness       PostAttractiveness?
+  userInterestMappings UserPostInterestMapping[]
+
+  // تحليلات الفيديو الجديدة
+  videoViewSessions VideoViewSession[]
+  videoMetrics      VideoMetrics?
+
+  // Advanced tracking relations
+  scrollTrackings      UserScrollTracking[]      @relation("PostScrollTracking")
+  videoTrackings       UserVideoTracking[]       @relation("PostVideoTracking")
+  interactionTrackings UserInteractionTracking[] @relation("PostInteractionTracking")
+
+  // المنشورات الممولة المرتبطة بهذا المنشور
+  sponsoredPosts SponsoredPost[]
+
+  // أرباح المؤثرين من هذا المنشور - مُعطل مؤقتاً
+  // influencerEarnings InfluencerEarning[] @relation("PostEarnings")
+
+  @@index([userId])
+  @@index([visibility])
+  @@index([createdAt])
+  @@index([isDeleted])
+  @@index([isPinned])
+  @@map("posts")
+}
+
+model Interaction {
+  id       String          @id @default(uuid())
+  postId   String          @map("post_id")
+  userId   String          @map("user_id")
+  type     InteractionType
+  content  String? // For comments
+  parentId String?         @map("parent_id") // For comment replies
+
+  // Comment features
+  likesCount Int     @default(0) @map("likes_count")
+  isDeleted  Boolean @default(false) @map("is_deleted")
+
+  // Speed-based scoring system
+  reactionSpeedMultiplier Float? @default(1.0) @map("reaction_speed_multiplier") // Speed multiplier based on reaction time
+  adjustedPoints          Int?   @default(0) @map("adjusted_points") // Final points after speed calculation
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  // Relations
+  post       Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent     Interaction?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies    Interaction[] @relation("CommentReplies")
+  userScores UserScore[]
+  reports    Report[]
+
+  @@unique([postId, userId, type]) // Prevent duplicate likes from same user
+  @@index([postId])
+  @@index([userId])
+  @@index([type])
+  @@index([parentId])
+  @@index([createdAt])
+  @@map("interactions")
+}
+
+model UserScore {
+  id              String          @id @default(uuid())
+  userId          String          @map("user_id")
+  postId          String          @map("post_id")
+  interactionId   String?         @map("interaction_id")
+  interactionType InteractionType @map("interaction_type")
+  points          Int
+  interactionTime DateTime        @map("interaction_time")
+  calculatedScore Float           @map("calculated_score") // Based on interaction speed
+  speedCategory   SpeedCategory   @map("speed_category")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post        Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  interaction Interaction? @relation(fields: [interactionId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([postId])
+  @@index([interactionType])
+  @@index([speedCategory])
+  @@index([interactionTime])
+  @@index([calculatedScore])
+  @@map("user_scores")
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  AUDIO
+  DOCUMENT
+  GIF
+}
+
+enum PostVisibility {
+  PUBLIC
+  FRIENDS
+  PRIVATE
+}
+
+enum InteractionType {
+  LIKE
+  COMMENT
+  SHARE
+  VIEW
+  SAVE
+}
+
+enum SpeedCategory {
+  FAST // 0-5 minutes
+  MEDIUM // 5-30 minutes
+  SLOW // 30+ minutes
+}
+
+// ========================================
+// ✍️ التواقيع - User Signatures
+// ========================================
+
+model UserSignature {
+  id            String  @id @default(uuid())
+  influencerId  String  @map("influencer_id")
+  followerId    String  @map("follower_id")
+  signatureText String  @map("signature_text")
+  isActive      Boolean @default(true) @map("is_active")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  // Relations
+  influencer User @relation("InfluencerSignatures", fields: [influencerId], references: [id], onDelete: Cascade)
+  follower   User @relation("FollowerSignatures", fields: [followerId], references: [id], onDelete: Cascade)
+
+  @@unique([influencerId, followerId]) // One signature per relationship
+  @@index([influencerId])
+  @@index([followerId])
+  @@index([isActive])
+  @@map("user_signatures")
+}
+
+// ========================================
+// 🏆 الترشيحات - Nominations
+// ========================================
+
+model Nomination {
+  id               String           @id @default(uuid())
+  influencerId     String           @map("influencer_id")
+  candidateUserId  String           @map("candidate_user_id")
+  scoreSnapshot    Float            @map("score_snapshot")
+  status           NominationStatus @default(PENDING)
+  nominatedAt      DateTime         @default(now()) @map("nominated_at")
+  decisionDeadline DateTime         @map("decision_deadline")
+  respondedAt      DateTime?        @map("responded_at")
+
+  // Additional tracking
+  notes      String?
+  week       String // Format: "2025-W27"
+  year       Int
+  weekNumber Int     @map("week_number")
+  isExpired  Boolean @default(false) @map("is_expired")
+
+  // Relations
+  influencer User @relation("InfluencerNominations", fields: [influencerId], references: [id], onDelete: Cascade)
+  candidate  User @relation("CandidateNominations", fields: [candidateUserId], references: [id], onDelete: Cascade)
+
+  @@unique([influencerId, week]) // One nomination per influencer per week
+  @@index([influencerId])
+  @@index([candidateUserId])
+  @@index([status])
+  @@index([week])
+  @@index([decisionDeadline])
+  @@index([isExpired])
+  @@index([nominatedAt])
+  @@map("nominations")
+}
+
+enum NominationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+// ========================================
+// 📺 قنوات الفيديو والفيديوهات - Video Channels & Videos
+// ========================================
+
+model VideoChannel {
+  id           String  @id @default(uuid())
+  userId       String  @map("user_id")
+  name         String
+  description  String?
+  thumbnailUrl String? @map("thumbnail_url")
+
+  // Statistics
+  subscribersCount Int @default(0) @map("subscribers_count")
+  videosCount      Int @default(0) @map("videos_count")
+  totalViews       Int @default(0) @map("total_views")
+
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  // Relations
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  videos    Video[]
+  playlists Playlist[]
+
+  @@index([userId])
+  @@index([isActive])
+  @@index([subscribersCount])
+  @@index([createdAt])
+  @@map("video_channels")
+}
+
+model Video {
+  id           String  @id @default(uuid())
+  channelId    String  @map("channel_id")
+  title        String
+  description  String?
+  videoUrl     String  @map("video_url")
+  thumbnailUrl String? @map("thumbnail_url")
+
+  // Video properties
+  duration   Int? // in seconds
+  visibility PostVisibility @default(PUBLIC)
+
+  // Statistics
+  viewsCount    Int @default(0) @map("views_count")
+  likesCount    Int @default(0) @map("likes_count")
+  dislikesCount Int @default(0) @map("dislikes_count")
+  commentsCount Int @default(0) @map("comments_count")
+
+  // Content organization
+  tags     String[] // Array of tags
+  category String?
+
+  // Status
+  isProcessing Boolean @default(true) @map("is_processing")
+  isDeleted    Boolean @default(false) @map("is_deleted")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  // Relations
+  channel       VideoChannel   @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  playlistItems PlaylistItem[]
+  reports       Report[]
+
+  // الفيديوهات الممولة المرتبطة بهذا الفيديو
+  sponsoredVideos SponsoredVideo[]
+
+  @@index([channelId])
+  @@index([visibility])
+  @@index([viewsCount])
+  @@index([createdAt])
+  @@index([isDeleted])
+  @@index([category])
+  @@map("videos")
+}
+
+model Playlist {
+  id           String  @id @default(uuid())
+  channelId    String  @map("channel_id")
+  name         String
+  description  String?
+  thumbnailUrl String? @map("thumbnail_url")
+
+  // Statistics
+  videosCount   Int @default(0) @map("videos_count")
+  totalViews    Int @default(0) @map("total_views")
+  totalDuration Int @default(0) @map("total_duration") // in seconds
+
+  isPublic  Boolean  @default(true) @map("is_public")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  // Relations
+  channel VideoChannel   @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  items   PlaylistItem[]
+
+  @@index([channelId])
+  @@index([isPublic])
+  @@index([createdAt])
+  @@map("playlists")
+}
+
+model PlaylistItem {
+  id         String   @id @default(uuid())
+  playlistId String   @map("playlist_id")
+  videoId    String   @map("video_id")
+  position   Int
+  addedAt    DateTime @default(now()) @map("added_at")
+
+  // Relations
+  playlist Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  video    Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@unique([playlistId, videoId]) // Prevent duplicate videos in same playlist
+  @@index([playlistId])
+  @@index([videoId])
+  @@index([position])
+  @@map("playlist_items")
+}
+
+// ========================================
+// 💬 المحادثات والرسائل - Conversations & Messages
+// ========================================
+
+model Conversation {
+  id              String           @id @default(uuid())
+  type            ConversationType @default(PRIVATE)
+  name            String? // For group conversations
+  description     String?
+  avatarUrl       String?          @map("avatar_url")
+  createdByUserId String           @map("created_by_user_id")
+
+  // Last message tracking
+  lastMessageId String?   @map("last_message_id")
+  lastMessageAt DateTime? @map("last_message_at")
+
+  // Statistics
+  membersCount  Int @default(0) @map("members_count")
+  messagesCount Int @default(0) @map("messages_count")
+
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  // Relations
+  createdBy User                 @relation("ConversationCreator", fields: [createdByUserId], references: [id])
+  members   ConversationMember[]
+  messages  Message[]
+
+  @@index([type])
+  @@index([createdByUserId])
+  @@index([lastMessageAt])
+  @@index([isActive])
+  @@index([createdAt])
+  @@map("conversations")
+}
+
+model ConversationMember {
+  id             String     @id @default(uuid())
+  conversationId String     @map("conversation_id")
+  userId         String     @map("user_id")
+  role           MemberRole @default(MEMBER)
+
+  // Read tracking
+  lastReadAt  DateTime? @map("last_read_at")
+  unreadCount Int       @default(0) @map("unread_count")
+
+  // Settings
+  isMuted Boolean @default(false) @map("is_muted")
+
+  joinedAt DateTime  @default(now()) @map("joined_at")
+  leftAt   DateTime? @map("left_at")
+
+  // Relations
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@index([conversationId])
+  @@index([userId])
+  @@index([role])
+  @@index([lastReadAt])
+  @@map("conversation_members")
+}
+
+model Message {
+  id             String      @id @default(uuid())
+  conversationId String      @map("conversation_id")
+  senderId       String      @map("sender_id")
+  messageType    MessageType @map("message_type")
+  content        String? // For text messages
+  mediaUrl       String?     @map("media_url") // For media messages
+
+  // File properties
+  fileName String? @map("file_name")
+  fileSize Int?    @map("file_size") // in bytes
+
+  // Reply system
+  replyToId String? @map("reply_to_id")
+
+  // Message status
+  isEdited    Boolean @default(false) @map("is_edited")
+  isDeleted   Boolean @default(false) @map("is_deleted")
+  readByCount Int     @default(0) @map("read_by_count")
+
+  sentAt   DateTime  @default(now()) @map("sent_at")
+  editedAt DateTime? @map("edited_at")
+
+  // Relations
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  replyTo      Message?     @relation("MessageReplies", fields: [replyToId], references: [id])
+  replies      Message[]    @relation("MessageReplies")
+  reports      Report[]
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([messageType])
+  @@index([sentAt])
+  @@index([isDeleted])
+  @@index([replyToId])
+  @@map("messages")
+}
+
+enum ConversationType {
+  PRIVATE
+  GROUP
+}
+
+enum MemberRole {
+  ADMIN
+  MODERATOR
+  MEMBER
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  VIDEO
+  FILE
+  VOICE
+  STICKER
+  GIF
+}
+
+// ========================================
+// 👮‍♂️ المشرفون والصلاحيات - Admins & Permissions
+// ========================================
+
+model Admin {
+  id         String    @id @default(uuid())
+  userId     String    @unique @map("user_id")
+  role       AdminRole @default(MODERATOR)
+  assignedBy String?   @map("assigned_by")
+  assignedAt DateTime  @default(now()) @map("assigned_at")
+
+  // Status
+  isActive     Boolean   @default(true) @map("is_active")
+  lastActiveAt DateTime? @map("last_active_at")
+
+  // Additional info
+  notes      String?
+  department String?
+
+  // Required files for admin verification
+  cvFile             String? @map("cv_file") // CV file path or text
+  criminalRecordFile String? @map("criminal_record_file") // Criminal record document
+  profileImage       String? @map("profile_image") // Admin profile photo
+
+  // Verification status
+  isVerified Boolean   @default(false) @map("is_verified")
+  verifiedBy String?   @map("verified_by") // Super admin who verified
+  verifiedAt DateTime? @map("verified_at")
+
+  // Relations
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permissions     AdminPermission[]
+  reviewedReports Report[]
+
+  @@index([role])
+  @@index([isActive])
+  @@index([assignedAt])
+  @@index([lastActiveAt])
+  @@index([isVerified])
+  @@map("admins")
+}
+
+model AdminPermission {
+  id        String       @id @default(uuid())
+  adminId   String       @map("admin_id")
+  section   AdminSection
+  canView   Boolean      @default(false) @map("can_view")
+  canEdit   Boolean      @default(false) @map("can_edit")
+  canDelete Boolean      @default(false) @map("can_delete")
+  canBan    Boolean      @default(false) @map("can_ban")
+
+  grantedAt DateTime @default(now()) @map("granted_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  admin Admin @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@unique([adminId, section]) // One permission record per section per admin
+  @@index([adminId])
+  @@index([section])
+  @@map("admin_permissions")
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+  MODERATOR
+}
+
+enum AdminSection {
+  USERS
+  CONTENT
+  VIDEOS
+  ANALYTICS
+  MESSAGING
+  REPORTS
+  NOMINATIONS
+  SETTINGS
+}
+
+// ========================================
+// 🔐 تتبع الأجهزة والجلسات - Login Sessions & Device Tracking
+// ========================================
+
+model LoginSession {
+  id        String @id @default(uuid())
+  userId    String @map("user_id")
+  ipAddress String @map("ip_address")
+
+  // Location data
+  country  String?
+  region   String?
+  city     String?
+  timezone String?
+
+  // Device information
+  deviceType        DeviceType @map("device_type")
+  os                String?
+  browser           String?
+  userAgent         String     @map("user_agent")
+  deviceFingerprint String?    @map("device_fingerprint")
+
+  // Session status
+  isActive     Boolean @default(true) @map("is_active")
+  isSuspicious Boolean @default(false) @map("is_suspicious")
+
+  // Timestamps
+  loginTime      DateTime  @default(now()) @map("login_time")
+  logoutTime     DateTime? @map("logout_time")
+  lastActivityAt DateTime  @default(now()) @map("last_activity_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([ipAddress])
+  @@index([deviceType])
+  @@index([isActive])
+  @@index([loginTime])
+  @@index([lastActivityAt])
+  @@index([isSuspicious])
+  @@map("login_sessions")
+}
+
+enum DeviceType {
+  DESKTOP
+  MOBILE
+  TABLET
+  UNKNOWN
+}
+
+// ========================================
+// 📈 الترندات والهاشتاغ والكلمات المفتاحية - Trends, Hashtags & Keywords
+// ========================================
+
+model Hashtag {
+  id         String @id @default(uuid())
+  name       String @unique
+  usageCount Int    @default(1) @map("usage_count")
+  trendScore Float  @default(0) @map("trend_score")
+
+  // Trend tracking
+  dailyUsage  Int @default(0) @map("daily_usage")
+  weeklyUsage Int @default(0) @map("weekly_usage")
+  peakUsage   Int @default(0) @map("peak_usage")
+
+  // Timestamps
+  lastUsedAt DateTime  @default(now()) @map("last_used_at")
+  peakAt     DateTime? @map("peak_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @default(now()) @map("updated_at")
+
+  // Relations
+  posts          PostHashtag[]
+  trendingTopics TrendingTopic[]
+
+  @@index([name])
+  @@index([usageCount])
+  @@index([trendScore])
+  @@index([lastUsedAt])
+  @@index([dailyUsage])
+  @@index([weeklyUsage])
+  @@map("hashtags")
+}
+
+model PostHashtag {
+  id          String   @id @default(uuid())
+  postId      String   @map("post_id")
+  hashtagId   String   @map("hashtag_id")
+  extractedAt DateTime @default(now()) @map("extracted_at")
+
+  // Relations
+  post    Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  hashtag Hashtag @relation(fields: [hashtagId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, hashtagId])
+  @@index([postId])
+  @@index([hashtagId])
+  @@index([extractedAt])
+  @@map("post_hashtags")
+}
+
+model Keyword {
+  id                 String  @id @default(uuid())
+  keyword            String
+  weight             Float   @default(1.0)
+  detectedFromPostId String? @map("detected_from_post_id")
+
+  // Classification
+  category  String?
+  sentiment Float? // Sentiment analysis score (-1 to 1)
+  language  String? @default("ar") // Language detected
+
+  // Usage tracking
+  usageCount  Int @default(1) @map("usage_count")
+  dailyUsage  Int @default(0) @map("daily_usage")
+  weeklyUsage Int @default(0) @map("weekly_usage")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  // Relations
+  trendingTopics TrendingTopic[]
+
+  @@index([keyword])
+  @@index([weight])
+  @@index([category])
+  @@index([usageCount])
+  @@index([language])
+  @@index([sentiment])
+  @@map("keywords")
+}
+
+model TrendingTopic {
+  id          String    @id @default(uuid())
+  title       String
+  type        TrendType
+  referenceId String    @map("reference_id") // hashtag_id or keyword_id
+
+  // Trend metrics
+  trendScore Float @map("trend_score")
+  velocity   Float @default(0) // Rate of growth
+  momentum   Float @default(0) // Sustained growth
+
+  // Peak tracking
+  peakScore Float     @default(0) @map("peak_score")
+  peakAt    DateTime? @map("peak_at")
+
+  // Classification
+  category String?
+  region   String?
+  ageGroup String? @map("age_group")
+
+  // Status
+  isActive Boolean @default(true) @map("is_active")
+
+  detectedAt DateTime @default(now()) @map("detected_at")
+  updatedAt  DateTime @default(now()) @map("updated_at")
+
+  // Relations
+  hashtag Hashtag? @relation(fields: [referenceId], references: [id], map: "trending_topic_hashtag_fkey")
+  keyword Keyword? @relation(fields: [referenceId], references: [id], map: "trending_topic_keyword_fkey")
+
+  @@index([type])
+  @@index([trendScore])
+  @@index([category])
+  @@index([region])
+  @@index([detectedAt])
+  @@index([isActive])
+  @@index([velocity])
+  @@map("trending_topics")
+}
+
+enum TrendType {
+  HASHTAG
+  KEYWORD
+  TOPIC
+  USER
+  POST
+}
+
+// ========================================
+// 🔔 الإشعارات - Notifications
+// ========================================
+
+model Notification {
+  id       String           @id @default(uuid())
+  userId   String           @map("user_id")
+  type     NotificationType
+  title    String
+  message  String
+  dataJson String?          @map("data_json") // Additional data as JSON
+
+  // Action and navigation
+  actionUrl  String? @map("action_url")
+  actionType String? @map("action_type")
+
+  // Status
+  isRead   Boolean              @default(false) @map("is_read")
+  readAt   DateTime?            @map("read_at")
+  priority NotificationPriority @default(NORMAL)
+
+  // Delivery
+  isSent         Boolean   @default(false) @map("is_sent")
+  sentAt         DateTime? @map("sent_at")
+  deliveryMethod String?   @map("delivery_method") // web, email, push
+
+  // Expiration
+  expiresAt DateTime? @map("expires_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type])
+  @@index([isRead])
+  @@index([priority])
+  @@index([createdAt])
+  @@index([expiresAt])
+  @@index([isSent])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  LIKE
+  COMMENT
+  SHARE
+  FOLLOW
+  NOMINATION
+  MESSAGE
+  MENTION
+  SYSTEM
+  SECURITY
+  PROMOTION
+  TREND
+  ACHIEVEMENT
+  BESTFRIEND
+}
+
+enum NotificationPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+// ========================================
+// 🚨 البلاغات والمخالفات - Reports & Violations
+// ========================================
+
+model Report {
+  id          String           @id @default(uuid())
+  reporterId  String           @map("reporter_id")
+  targetType  ReportTargetType @map("target_type")
+  targetId    String           @map("target_id")
+  reason      ReportReason
+  description String?
+
+  // Evidence
+  evidence    String[] // URLs to evidence files
+  screenshots String[] // Screenshot URLs
+
+  // Status and processing
+  status   ReportStatus   @default(PENDING)
+  priority ReportPriority @default(NORMAL)
+  severity ReportSeverity @default(LOW)
+
+  // Review information
+  reviewedBy  String?       @map("reviewed_by")
+  reviewedAt  DateTime?     @map("reviewed_at")
+  reviewNotes String?       @map("review_notes")
+  action      ReportAction?
+
+  // Additional tracking
+  category    String?
+  tags        String[]
+  isAnonymous Boolean  @default(false) @map("is_anonymous")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  // Relations
+  reporter User   @relation("Reporter", fields: [reporterId], references: [id])
+  reviewer User?  @relation("Reviewer", fields: [reviewedBy], references: [id], map: "report_reviewer_fkey")
+  admin    Admin? @relation(fields: [reviewedBy], references: [userId], map: "report_admin_fkey")
+
+  // Target relations (polymorphic)
+  post        Post?        @relation(fields: [targetId], references: [id], map: "report_post_fkey")
+  interaction Interaction? @relation(fields: [targetId], references: [id], map: "report_interaction_fkey")
+  video       Video?       @relation(fields: [targetId], references: [id], map: "report_video_fkey")
+  message     Message?     @relation(fields: [targetId], references: [id], map: "report_message_fkey")
+
+  @@index([reporterId])
+  @@index([targetType, targetId])
+  @@index([status])
+  @@index([priority])
+  @@index([severity])
+  @@index([reviewedBy])
+  @@index([createdAt])
+  @@index([reason])
+  @@map("reports")
+}
+
+enum ReportTargetType {
+  POST
+  COMMENT
+  USER
+  VIDEO
+  MESSAGE
+  CHANNEL
+  PLAYLIST
+}
+
+enum ReportReason {
+  SPAM
+  HARASSMENT
+  HATE_SPEECH
+  VIOLENCE
+  INAPPROPRIATE_CONTENT
+  COPYRIGHT
+  FAKE_NEWS
+  IMPERSONATION
+  PRIVACY_VIOLATION
+  NUDITY
+  TERRORISM
+  DRUGS
+  SELF_HARM
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  UNDER_REVIEW
+  RESOLVED
+  DISMISSED
+  ESCALATED
+  ARCHIVED
+}
+
+enum ReportPriority {
+  LOW
+  NORMAL
+  HIGH
+  CRITICAL
+}
+
+enum ReportSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum ReportAction {
+  WARNING
+  CONTENT_REMOVED
+  CONTENT_HIDDEN
+  ACCOUNT_SUSPENDED
+  ACCOUNT_BANNED
+  NO_ACTION
+  REFERRED_TO_AUTHORITIES
+}
+
+// ========================================
+// 🚫 الحظر بين المستخدمين - User Blocks
+// ========================================
+
+model UserBlock {
+  id            String    @id @default(uuid())
+  blockerUserId String    @map("blocker_user_id")
+  blockedUserId String    @map("blocked_user_id")
+  reason        String?
+  blockType     BlockType @default(FULL_BLOCK) @map("block_type")
+
+  // Status
+  isActive Boolean @default(true) @map("is_active")
+
+  // Duration (for temporary blocks)
+  expiresAt DateTime? @map("expires_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  // Relations
+  blocker User @relation("Blocker", fields: [blockerUserId], references: [id], onDelete: Cascade)
+  blocked User @relation("Blocked", fields: [blockedUserId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerUserId, blockedUserId])
+  @@index([blockerUserId])
+  @@index([blockedUserId])
+  @@index([isActive])
+  @@index([blockType])
+  @@index([expiresAt])
+  @@map("user_blocks")
+}
+
+enum BlockType {
+  FULL_BLOCK // Complete block
+  MESSAGES_ONLY // Block messages only
+  POSTS_ONLY // Block posts only
+  TEMPORARY // Temporary block
+}
+
+// ========================================
+// 📊 سجل النشاط - Activity Logs
+// ========================================
+
+model ActivityLog {
+  id          String         @id @default(uuid())
+  userId      String         @map("user_id")
+  action      ActivityAction
+  targetType  String?        @map("target_type")
+  targetId    String?        @map("target_id")
+  description String
+
+  // Additional context
+  metadata String? // JSON metadata
+  category ActivityCategory?
+
+  // Request information
+  ipAddress  String?     @map("ip_address")
+  userAgent  String?     @map("user_agent")
+  deviceType DeviceType? @map("device_type")
+
+  // Geolocation
+  country String?
+  region  String?
+  city    String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([action])
+  @@index([targetType, targetId])
+  @@index([createdAt])
+  @@index([category])
+  @@index([ipAddress])
+  @@map("activity_logs")
+}
+
+enum ActivityAction {
+  // Authentication
+  LOGIN
+  LOGOUT
+  REGISTER
+  PASSWORD_CHANGE
+
+  // Content actions
+  CREATE_POST
+  EDIT_POST
+  DELETE_POST
+  LIKE_POST
+  UNLIKE_POST
+  COMMENT_POST
+  SHARE_POST
+  SAVE_POST
+
+  // Social actions
+  FOLLOW_USER
+  UNFOLLOW_USER
+  BLOCK_USER
+  UNBLOCK_USER
+
+  // Reporting
+  REPORT_CONTENT
+  REVIEW_REPORT
+
+  // Profile actions
+  UPDATE_PROFILE
+  UPLOAD_AVATAR
+  UPDATE_SETTINGS
+
+  // Video actions
+  UPLOAD_VIDEO
+  DELETE_VIDEO
+  CREATE_PLAYLIST
+
+  // Messaging
+  JOIN_CONVERSATION
+  LEAVE_CONVERSATION
+  SEND_MESSAGE
+  DELETE_MESSAGE
+
+  // Nominations
+  NOMINATE_USER
+  ACCEPT_NOMINATION
+  REJECT_NOMINATION
+
+  // Admin actions
+  BAN_USER
+  UNBAN_USER
+  DELETE_CONTENT
+  APPROVE_CONTENT
+}
+
+enum ActivityCategory {
+  AUTHENTICATION
+  CONTENT
+  SOCIAL
+  ADMIN
+  SECURITY
+  MESSAGING
+  VIDEO
+}
+
+// ========================================
+// 🎯 ملف الاهتمامات التلقائي - Auto-Generated User Interest Profile
+// ========================================
+
+model UserInterestProfile {
+  id     String @id @default(uuid())
+  userId String @unique @map("user_id")
+
+  // معلومات الملف الشخصي
+  profileVersion    Int      @default(1) @map("profile_version")
+  lastCalculated    DateTime @default(now()) @map("last_calculated")
+  nextUpdateDue     DateTime @map("next_update_due")
+  calculationMethod String   @default("behavioral_analysis_v1") @map("calculation_method")
+
+  // درجات الثقة والجودة
+  overallConfidence   Float @default(0.5) @map("overall_confidence") // 0-1
+  dataQuality         Float @default(0.5) @map("data_quality") // 0-1
+  profileCompleteness Float @default(0.0) @map("profile_completeness") // 0-1
+
+  // إحصائيات السلوك
+  totalInteractions  Int      @default(0) @map("total_interactions")
+  uniqueInterests    Int      @default(0) @map("unique_interests")
+  dominantCategories String[] @map("dominant_categories") // Top 5 categories
+
+  // الاهتمامات الحالية
+  topInterests       Json @map("top_interests") // Top 20 interests with scores
+  interestCategories Json @map("interest_categories") // Categories with aggregated scores
+  interestTrends     Json @map("interest_trends") // Trending up/down interests
+
+  // تحليل شخصية المستخدم
+  behaviorPattern   BehaviorPattern   @default(BALANCED) @map("behavior_pattern")
+  engagementStyle   EngagementStyle   @default(CASUAL) @map("engagement_style")
+  contentPreference ContentPreference @default(MIXED) @map("content_preference")
+
+  // تخصيص التجربة
+  recommendationWeight Float @default(1.0) @map("recommendation_weight")
+  exploreVsExploit     Float @default(0.7) @map("explore_vs_exploit") // 0=exploit, 1=explore
+  diversityScore       Float @default(0.5) @map("diversity_score")
+
+  // تتبع التغييرات
+  significantChanges Json? @map("significant_changes") // Major interest changes
+  stabilityScore     Float @default(0.5) @map("stability_score") // How stable interests are
+
+  // إعدادات التحديث
+  updateFrequency   UpdateFrequency @default(WEEKLY) @map("update_frequency")
+  autoUpdateEnabled Boolean         @default(true) @map("auto_update_enabled")
+  manualOverrides   Json?           @map("manual_overrides") // User manual adjustments
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([lastCalculated])
+  @@index([nextUpdateDue])
+  @@index([overallConfidence])
+  @@index([profileCompleteness])
+  @@index([behaviorPattern])
+  @@index([autoUpdateEnabled])
+  @@map("user_interest_profiles")
+}
+
+model UserInterestScore {
+  id           String @id @default(uuid())
+  userId       String @map("user_id")
+  interestName String @map("interest_name")
+
+  // درجات الاهتمام
+  currentScore    Float @map("current_score") // 0-100 main score
+  rawScore        Float @map("raw_score") // Before normalization
+  normalizedScore Float @map("normalized_score") // 0-1 normalized
+  weightedScore   Float @map("weighted_score") // With time decay and boosts
+
+  // تصنيف الاهتمام
+  category    String
+  subcategory String?
+  keywords    String[] // Related keywords
+  confidence  Float    @default(0.5) // Confidence in this interest
+
+  // مصادر الاهتمام
+  sources       String[] @map("sources") // Multiple sources as strings
+  sourceWeights Json     @map("source_weights") // Weight per source
+  primarySource String   @map("primary_source") // Primary source as string
+
+  // إحصائيات التفاعل
+  totalInteractions  Int    @default(0) @map("total_interactions")
+  recentInteractions Int    @default(0) @map("recent_interactions") // Last 30 days
+  avgInteractionGap  Float? @map("avg_interaction_gap") // Days between interactions
+
+  // تحليل السلوك الزمني
+  firstDetected DateTime @default(now()) @map("first_detected")
+  lastActivity  DateTime @default(now()) @map("last_activity")
+  peakPeriod    String?  @map("peak_period") // When most active
+  seasonality   Float? // Seasonal interest pattern
+
+  // تحليل الاتجاهات
+  trendDirection TrendDirection @default(STABLE) @map("trend_direction")
+  trendStrength  Float          @default(0) @map("trend_strength") // -1 to 1
+  momentum       Float          @default(0) // Recent change velocity
+  volatility     Float          @default(0) // How stable the interest is
+
+  // عوامل التعديل
+  decayFactor      Float @default(0.98) @map("decay_factor")
+  boostFactor      Float @default(1.0) @map("boost_factor")
+  contextualWeight Float @default(1.0) @map("contextual_weight")
+
+  // حالة الاهتمام
+  status     InterestStatus @default(ACTIVE)
+  isCore     Boolean        @default(false) @map("is_core") // Core/persistent interest
+  isEmerging Boolean        @default(false) @map("is_emerging") // New interest
+  isFading   Boolean        @default(false) @map("is_fading") // Declining interest
+
+  // ربط بالمحتوى
+  relatedPosts    String[] @map("related_posts") // Post IDs that contributed
+  relatedUsers    String[] @map("related_users") // Users associated with this interest
+  relatedHashtags String[] @map("related_hashtags")
+
+  lastCalculated     DateTime  @default(now()) @map("last_calculated")
+  nextReview         DateTime? @map("next_review")
+  lastDecayApplied   DateTime? @map("last_decay_applied") // آخر تطبيق للتسوية الزمنية
+  needsRecalculation Boolean   @default(false) @map("needs_recalculation")
+  isArchived         Boolean   @default(false) @map("is_archived") // مؤرشف لعدم النشاط
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, interestName])
+  @@index([userId])
+  @@index([interestName])
+  @@index([category])
+  @@index([currentScore])
+  @@index([confidence])
+  @@index([status])
+  @@index([isCore])
+  @@index([isEmerging])
+  @@index([isFading])
+  @@index([lastActivity])
+  @@index([trendDirection])
+  @@index([category, currentScore])
+  @@map("user_interest_scores")
+}
+
+// Enums for Interest System
+enum BehaviorPattern {
+  FOCUSED // Focused on few interests
+  DIVERSE // Wide range of interests  
+  EXPLORER // Constantly discovering new interests
+  CONSISTENT // Stable, unchanging interests
+  SEASONAL // Interests change with seasons/time
+  BALANCED // Mix of focused and diverse
+}
+
+enum EngagementStyle {
+  PASSIVE // Mostly viewing/consuming
+  ACTIVE // Regular commenting/sharing
+  CREATOR // Creates content regularly
+  CURATOR // Saves and organizes content
+  SOCIAL // Focus on social interactions
+  CASUAL // Light, occasional engagement
+}
+
+enum ContentPreference {
+  TEXT_HEAVY // Prefers text content
+  VISUAL // Prefers images/videos
+  MIXED // No strong preference
+  INTERACTIVE // Prefers interactive content
+  SHORT_FORM // Quick, bite-sized content
+  LONG_FORM // In-depth, detailed content
+}
+
+enum UpdateFrequency {
+  DAILY
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+  QUARTERLY
+  ON_DEMAND // Only when manually triggered
+}
+
+enum InterestStatus {
+  ACTIVE // Currently active interest
+  DORMANT // Temporarily inactive
+  EMERGING // New, growing interest
+  FADING // Declining interest
+  ARCHIVED // Historical interest
+  SUPPRESSED // Manually suppressed by user
+}
+
+enum TrendDirection {
+  RISING // Interest is growing
+  STABLE // Interest is stable
+  DECLINING // Interest is declining
+  VOLATILE // Interest fluctuates
+  SEASONAL // Interest follows seasonal pattern
+}
+
+enum InterestSource {
+  INTERACTION // From post interactions
+  PROFILE // From profile information
+  SEARCH // From search behavior
+  VIEWING_TIME // From time spent on content
+  EXPLICIT // Explicitly selected by user
+  HASHTAG // From hashtag usage
+  FOLLOWING // From following patterns
+  SAVE // From saved content
+  SHARE // From shared content
+  COMMENT // From comments
+  LIKE // From likes
+  RECOMMENDATION // From AI recommendations
+  TRENDING // From trending content engagement
+}
+
+// ========================================
+// 🎯 Content Classification & Sentiment Analysis
+// ========================================
+
+model ContentCategory {
+  id          String  @id @default(uuid())
+  name        String  @unique // مثل: تقني، اجتماعي، صحي، رياضي...
+  nameAr      String // الاسم بالعربية
+  nameEn      String // الاسم بالإنجليزية
+  description String? // وصف الفئة
+  color       String? // لون مميز للفئة في الواجهة
+  icon        String? // أيقونة الفئة
+
+  // Hierarchy support - للفئات الفرعية
+  parentId String?           @map("parent_id")
+  parent   ContentCategory?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children ContentCategory[] @relation("CategoryHierarchy")
+
+  // Configuration
+  isActive         Boolean @default(true) @map("is_active")
+  requiresApproval Boolean @default(false) @map("requires_approval") // هل تحتاج موافقة مشرف
+  isSensitive      Boolean @default(false) @map("is_sensitive") // محتوى حساس
+
+  // Stats
+  postsCount Int @default(0) @map("posts_count")
+  priority   Int @default(0) // ترتيب العرض
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  // Relations
+  postClassifications      PostClassification[] @relation("PrimaryCategory")
+  secondaryClassifications PostClassification[] @relation("SecondaryCategory")
+  moderationRules          ModerationRule[]
+
+  @@index([name])
+  @@index([parentId])
+  @@index([isActive])
+  @@index([priority])
+  @@map("content_categories")
+}
+
+model PostClassification {
+  id     String @id @default(uuid())
+  postId String @map("post_id")
+
+  // Primary Classification
+  primaryCategoryId   String  @map("primary_category_id")
+  secondaryCategoryId String? @map("secondary_category_id")
+
+  // Confidence & Quality
+  confidence   Float  @default(0.0) // 0.0 - 1.0
+  qualityScore Float? @map("quality_score") // تقييم جودة المحتوى
+
+  // AI Analysis
+  aiKeywords   String[] // كلمات مفتاحية مستخرجة بالذكاء الاصطناعي
+  aiTopics     String[] // مواضيع محددة بالذكاء الاصطناعي
+  languageCode String   @default("ar") @map("language_code") // ar, en, etc.
+
+  // Manual Override
+  manualOverride Boolean   @default(false) @map("manual_override")
+  reviewedBy     String?   @map("reviewed_by") // معرف المشرف الذي راجع
+  reviewedAt     DateTime? @map("reviewed_at")
+  reviewNotes    String?   @map("review_notes")
+
+  // Status
+  isApproved  Boolean @default(true) @map("is_approved")
+  needsReview Boolean @default(false) @map("needs_review")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  // Relations
+  post              Post                    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  primaryCategory   ContentCategory         @relation("PrimaryCategory", fields: [primaryCategoryId], references: [id])
+  secondaryCategory ContentCategory?        @relation("SecondaryCategory", fields: [secondaryCategoryId], references: [id])
+  sentimentAnalyses PostSentimentAnalysis[] // التحليلات المرتبطة بهذا التصنيف
+
+  @@unique([postId]) // كل منشور له تصنيف واحد فقط
+  @@index([primaryCategoryId])
+  @@index([confidence])
+  @@index([isApproved])
+  @@index([needsReview])
+  @@index([languageCode])
+  @@map("post_classifications")
+}
+
+model PostSentimentAnalysis {
+  id                   String @id @default(uuid())
+  postClassificationId String @unique @map("post_classification_id")
+
+  // Overall Sentiment
+  sentimentScore Float @default(0.0) // -1.0 (سلبي جداً) إلى +1.0 (إيجابي جداً)
+  confidence     Float @default(0.0) // ثقة التحليل 0.0 - 1.0
+
+  // Detailed Analysis
+  positiveScore Float @default(0.0) @map("positive_score") // 0.0 - 1.0
+  negativeScore Float @default(0.0) @map("negative_score") // 0.0 - 1.0
+  neutralScore  Float @default(0.0) @map("neutral_score") // 0.0 - 1.0
+
+  // Context Analysis
+  toxicityScore Float @default(0.0) @map("toxicity_score") // 0.0 - 1.0
+  hateScore     Float @default(0.0) @map("hate_score") // كراهية
+  threatsScore  Float @default(0.0) @map("threats_score") // تهديدات
+  spamScore     Float @default(0.0) @map("spam_score") // سبام
+
+  // Keywords & Triggers
+  positiveKeywords String[] @map("positive_keywords")
+  negativeKeywords String[] @map("negative_keywords")
+  triggerWords     String[] @map("trigger_words") // كلمات قد تسبب مشاكل
+
+  // Manual Review
+  manualReview   Boolean   @default(false) @map("manual_review")
+  reviewerUserId String?   @map("reviewer_user_id")
+  reviewerNotes  String?   @map("reviewer_notes")
+  reviewedAt     DateTime? @map("reviewed_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  // Relations
+  postClassification PostClassification @relation(fields: [postClassificationId], references: [id], onDelete: Cascade)
+
+  @@index([sentimentScore])
+  @@index([toxicityScore])
+  @@map("post_sentiment_analysis")
+}
+
+model ModerationRule {
+  id         String @id @default(uuid())
+  categoryId String @map("category_id")
+
+  // Rule Definition
+  name        String // اسم القاعدة
+  description String // وصف القاعدة
+
+  // Conditions
+  keywords     String[] // كلمات محظورة أو مشبوهة
+  sentimentMin Float?   @map("sentiment_min") // أقل درجة مشاعر مقبولة
+  sentimentMax Float?   @map("sentiment_max") // أعلى درجة مشاعر مقبولة
+  toxicityMax  Float?   @map("toxicity_max") // أقصى مستوى سمية مقبول
+
+  // Actions
+  autoExecute   Boolean @default(false) @map("auto_execute") // تنفيذ تلقائي
+  requiresHuman Boolean @default(true) @map("requires_human") // يحتاج مراجعة بشرية
+
+  // Configuration
+  isActive Boolean @default(true) @map("is_active")
+  priority Int     @default(0) // أولوية القاعدة
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  // Relations
+  category ContentCategory @relation(fields: [categoryId], references: [id])
+
+  @@index([categoryId])
+  @@index([isActive])
+  @@index([priority])
+  @@map("moderation_rules")
+}
+
+model ContentModerationLog {
+  id     String @id @default(uuid())
+  postId String @map("post_id")
+
+  // Action Details
+  reason String // سبب الإجراء
+  ruleId String? @map("rule_id") // القاعدة التي تم تطبيقها
+
+  // Execution
+  executedBy  String? @map("executed_by") // معرف المشرف أو "system"
+  isAutomatic Boolean @default(false) @map("is_automatic")
+
+  // Before/After State
+  beforeStatus String? @map("before_status")
+  afterStatus  String? @map("after_status")
+
+  // Additional Data
+  metadata Json? // بيانات إضافية
+  notes    String? // ملاحظات المشرف
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([postId])
+  @@index([executedBy])
+  @@index([isAutomatic])
+  @@index([createdAt])
+  @@map("content_moderation_logs")
+}
+
+// ========================================
+// 📊 Content Analytics & Insights
+// ========================================
+
+// جدول تحليل جاذبية المنشورات الفردية
+model PostAttractiveness {
+  id     String @id @default(uuid())
+  postId String @unique @map("post_id")
+
+  // معدلات الجاذبية
+  overallScore   Float @default(0.0) @map("overall_score") // 0-100 نقاط الجاذبية الإجمالية
+  visualAppeal   Float @default(0.0) @map("visual_appeal") // جاذبية بصرية (للصور/فيديو)
+  contentQuality Float @default(0.0) @map("content_quality") // جودة المحتوى
+  engagement     Float @default(0.0) @map("engagement") // معدل التفاعل
+  virality       Float @default(0.0) @map("virality") // القابلية للانتشار
+
+  // تحليل سرعة التفاعل
+  initialResponse     Float     @default(0.0) @map("initial_response") // التفاعل في أول ساعة
+  peakTime            DateTime? @map("peak_time") // وقت ذروة التفاعل
+  sustainabilityScore Float     @default(0.0) @map("sustainability_score") // استدامة التفاعل
+
+  // تحليل الجمهور
+  audienceMatch     Float @default(0.0) @map("audience_match") // مطابقة مع اهتمامات الجمهور
+  demographicAppeal Json? @map("demographic_appeal") // الجاذبية للفئات العمرية/الجنس
+  geographicAppeal  Json? @map("geographic_appeal") // الجاذبية الجغرافية
+
+  // عوامل الجاذبية
+  hasMedia    Boolean @default(false) @map("has_media") // يحتوي على وسائط
+  hasHashtags Boolean @default(false) @map("has_hashtags") // يحتوي على هاشتاغ
+  postLength  Int     @default(0) @map("post_length") // طول المنشور
+  postTiming  Float   @default(0.0) @map("post_timing") // توقيت النشر (مقياس 0-1)
+
+  // تحليل المحتوى
+  sentimentScore  Float @default(0.0) @map("sentiment_score") // تحليل المشاعر
+  toxicityScore   Float @default(0.0) @map("toxicity_score") // مستوى السمية
+  clarityScore    Float @default(0.0) @map("clarity_score") // وضوح المحتوى
+  creativityScore Float @default(0.0) @map("creativity_score") // الإبداع
+
+  // الاتجاهات
+  trendAlignment Float @default(0.0) @map("trend_alignment") // مطابقة مع الاتجاهات
+  seasonalFactor Float @default(1.0) @map("seasonal_factor") // العامل الموسمي
+
+  // توقعات الأداء
+  predictedViews  Int   @default(0) @map("predicted_views")
+  predictedLikes  Int   @default(0) @map("predicted_likes")
+  predictedShares Int   @default(0) @map("predicted_shares")
+  confidenceLevel Float @default(0.5) @map("confidence_level") // ثقة التوقع
+
+  // معلومات التحديث
+  calculationMethod  String   @default("ai_analysis_v1") @map("calculation_method")
+  lastCalculated     DateTime @default(now()) @map("last_calculated")
+  needsRecalculation Boolean  @default(false) @map("needs_recalculation")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  // Relations
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([overallScore])
+  @@index([engagement])
+  @@index([virality])
+  @@index([lastCalculated])
+  @@index([audienceMatch])
+  @@index([trendAlignment])
+  @@map("post_attractiveness")
+}
+
+// جدول ربط منشورات المستخدم بتحليل اهتماماته
+model UserPostInterestMapping {
+  id     String @id @default(uuid())
+  userId String @map("user_id")
+  postId String @map("post_id")
+
+  // ربط الاهتمامات
+  relatedInterests String[] @map("related_interests") // الاهتمامات المرتبطة بهذا المنشور
+  interestScores   Json     @map("interest_scores") // درجات الاهتمام المحددة {interest: score}
+  categoryMatch    String?  @map("category_match") // الفئة المطابقة
+
+  // تحليل التطابق
+  matchScore           Float @default(0.0) @map("match_score") // مستوى تطابق المنشور مع اهتمامات المستخدم
+  personalRelevance    Float @default(0.0) @map("personal_relevance") // الصلة الشخصية
+  discoverabilityScore Float @default(0.0) @map("discoverability_score") // قابلية الاكتشاف
+
+  // سلوك المستخدم
+  viewTime            Int?                @map("view_time") // وقت المشاهدة بالثواني
+  interactionDelay    Int?                @map("interaction_delay") // تأخير التفاعل بالثواني
+  engagementType      UserEngagementType? @map("engagement_type")
+  engagementIntensity Float               @default(0.0) @map("engagement_intensity") // شدة التفاعل
+
+  // تأثير على ملف الاهتمامات
+  affectedInterests     String[] @map("affected_interests") // الاهتمامات المتأثرة
+  interestWeightChanges Json?    @map("interest_weight_changes") // تغييرات أوزان الاهتمامات
+  profileImpactScore    Float    @default(0.0) @map("profile_impact_score") // تأثير على الملف الشخصي
+
+  // معلومات التحليل
+  analysisMethod String  @default("behavioral_analysis") @map("analysis_method")
+  confidence     Float   @default(0.5) @map("confidence")
+  needsUpdate    Boolean @default(false) @map("needs_update")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([userId])
+  @@index([postId])
+  @@index([matchScore])
+  @@index([personalRelevance])
+  @@index([engagementType])
+  @@index([createdAt])
+  @@map("user_post_interest_mapping")
+}
+
+enum UserEngagementType {
+  PASSIVE_VIEW // مشاهدة سلبية
+  ACTIVE_VIEW // مشاهدة نشطة (وقت طويل)
+  LIKE // إعجاب
+  COMMENT // تعليق
+  SHARE // مشاركة
+  SAVE // حفظ
+  CLICK_PROFILE // نقر على الملف الشخصي
+  CLICK_HASHTAG // نقر على هاشتاغ
+  FULL_ENGAGEMENT // تفاعل كامل (أكثر من نوع)
+}
+
+model ContentInsight {
+  id   String   @id @default(uuid())
+  date DateTime @map("insight_date") // تاريخ التحليل
+
+  // Category Analysis
+  categoryId    String @map("category_id")
+  postsCount    Int    @default(0) @map("posts_count")
+  viewsCount    Int    @default(0) @map("views_count")
+  likesCount    Int    @default(0) @map("likes_count")
+  commentsCount Int    @default(0) @map("comments_count")
+  sharesCount   Int    @default(0) @map("shares_count")
+
+  // Sentiment Statistics
+  positiveCount Int   @default(0) @map("positive_count")
+  negativeCount Int   @default(0) @map("negative_count")
+  neutralCount  Int   @default(0) @map("neutral_count")
+  avgSentiment  Float @default(0.0) @map("avg_sentiment")
+
+  // Quality Metrics
+  avgQualityScore  Float @default(0.0) @map("avg_quality_score")
+  avgToxicityScore Float @default(0.0) @map("avg_toxicity_score")
+  moderatedCount   Int   @default(0) @map("moderated_count")
+  flaggedCount     Int   @default(0) @map("flagged_count")
+
+  // Trending
+  trendScore     Float @default(0.0) @map("trend_score")
+  engagementRate Float @default(0.0) @map("engagement_rate")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([date, categoryId])
+  @@index([date])
+  @@index([categoryId])
+  @@index([trendScore])
+  @@map("content_insights")
+}
+
+// 💰 نظام الحملات الإعلانية الممولة - Sponsored Campaigns System
+// ========================================
+
+enum AdvertiserType {
+  INDIVIDUAL
+  BUSINESS
+  AGENCY
+}
+
+enum CampaignType {
+  BRAND_AWARENESS
+  TRAFFIC
+  ENGAGEMENT
+  LEAD_GENERATION
+  SALES
+  VIDEO_VIEWS
+  APP_INSTALL
+  OTHER
+}
+
+enum CampaignGoal {
+  IMPRESSIONS
+
+  CLICKS
+  CONVERSIONS
+  REACH
+  VIDEO_VIEWS
+  ENGAGEMENT
+  SALES
+  OTHER
+}
+
+enum CampaignStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+  REJECTED
+}
+
+enum SponsoredStatus {
+  DRAFT
+  PENDING
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+  REJECTED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+enum TargetingStrategy {
+  BROAD
+  INTEREST
+  DEMOGRAPHIC
+  LOCATION
+  CUSTOM_AUDIENCE
+}
+
+enum BidType {
+  CPC
+  CPM
+  CPA
+  CPV
+}
+
+enum BidStrategy {
+  MANUAL
+  AUTOMATIC
+  TARGET_COST
+}
+
+enum PacingType {
+  STANDARD
+  ACCELERATED
+}
+
+enum ScheduleType {
+  CONTINUOUS
+  FIXED_DATES
+}
+
+enum TransactionType {
+  CHARGE
+  REFUND
+  ADJUSTMENT
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  BANK_TRANSFER
+  WALLET
+  PAYPAL
+  OTHER
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum PriorityLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum SponsoredAdType {
+  POST // إعلان مرتبط بمنشور عادي
+  VIDEO // إعلان مرتبط بفيديو
+  BANNER // إعلان بانر مستقل
+}
+
+enum BannerPosition {
+  TOP // أعلى الصفحة
+  BOTTOM // أسفل الصفحة
+  SIDEBAR // الشريط الجانبي
+  INLINE // داخل المحتوى
+  POPUP // نافذة منبثقة
+  OVERLAY // طبقة علوية
+}
+
+model Campaign {
+  id             String         @id @default(uuid())
+  name           String
+  description    String?
+  advertiserId   String
+  advertiserType AdvertiserType @default(INDIVIDUAL)
+  type           CampaignType
+  goal           CampaignGoal
+  status         CampaignStatus @default(DRAFT)
+  budget         Float
+  dailyBudget    Float?
+  startDate      DateTime
+  endDate        DateTime
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  // Relations
+  sponsoredAds SponsoredAd[]
+  targetings   SponsoredTargeting[]
+  performance  SponsoredPerformance[]
+  transactions SponsoredTransaction[]
+  // invoices     SponsoredAdInvoice[]   @relation("CampaignInvoices") // مُعطل مؤقتاً
+  advertiser   User                   @relation(fields: [advertiserId], references: [id])
+}
+
+model SponsoredAd {
+  id           String          @id @default(uuid())
+  campaignId   String
+  type         SponsoredAdType
+  title        String
+  content      String?
+  mediaUrl     String?
+  targetUrl    String?
+  status       SponsoredStatus @default(DRAFT)
+  impressions  Int             @default(0)
+  clicks       Int             @default(0)
+  cost         Float           @default(0)
+  bidType      BidType         @default(CPC)
+  bidAmount    Float           @default(0)
+  bidStrategy  BidStrategy     @default(AUTOMATIC)
+  pacingType   PacingType      @default(STANDARD)
+  scheduleType ScheduleType    @default(CONTINUOUS)
+  priority     PriorityLevel   @default(MEDIUM)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @default(now()) @map("updated_at")
+
+  // Relations
+  campaign        Campaign               @relation(fields: [campaignId], references: [id])
+  bids            SponsoredBid[]
+  insights        SponsoredInsight[]
+  performance     SponsoredPerformance[]
+  targetings      SponsoredTargeting[]
+  sponsoredPost   SponsoredPost?
+  sponsoredVideo  SponsoredVideo?
+  sponsoredBanner SponsoredBanner?
+}
+
+model SponsoredTargeting {
+  id             String            @id @default(uuid())
+  campaignId     String            @map("campaign_id")
+  sponsoredAdId  String            @map("sponsored_ad_id")
+  strategy       TargetingStrategy @default(BROAD)
+  ageMin         Int?
+  ageMax         Int?
+  genders        String[]
+  locations      String[]
+  interests      String[]
+  customAudience Json?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @default(now()) @map("updated_at")
+
+  // Relations
+  campaign    Campaign              @relation(fields: [campaignId], references: [id])
+  sponsoredAd SponsoredAd           @relation(fields: [sponsoredAdId], references: [id])
+  userTargets SponsoredUserTarget[]
+
+  @@index([campaignId])
+  @@index([sponsoredAdId])
+  @@map("sponsored_targeting")
+}
+
+model SponsoredUserTarget {
+  id           String   @id @default(uuid())
+  targetingId  String
+  userId       String
+  matchedScore Float    @default(0)
+  isReached    Boolean  @default(false)
+  isClicked    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  // Relations
+  targeting SponsoredTargeting @relation(fields: [targetingId], references: [id])
+  user      User               @relation(fields: [userId], references: [id])
+}
+
+model SponsoredPerformance {
+  id            String   @id @default(uuid())
+  campaignId    String
+  sponsoredAdId String
+  date          DateTime
+  impressions   Int      @default(0)
+  clicks        Int      @default(0)
+  ctr           Float    @default(0)
+  conversions   Int      @default(0)
+  spend         Float    @default(0)
+  cpc           Float    @default(0)
+  cpm           Float    @default(0)
+  cpa           Float    @default(0)
+  cpv           Float    @default(0)
+  createdAt     DateTime @default(now())
+
+  // Relations
+  campaign    Campaign    @relation(fields: [campaignId], references: [id])
+  sponsoredAd SponsoredAd @relation(fields: [sponsoredAdId], references: [id])
+}
+
+model SponsoredBid {
+  id            String          @id @default(uuid())
+  sponsoredAdId String
+  bidType       BidType         @default(CPC)
+  amount        Float           @default(0)
+  strategy      BidStrategy     @default(AUTOMATIC)
+  status        SponsoredStatus @default(DRAFT)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @default(now()) @map("updated_at")
+
+  // Relations
+  sponsoredAd SponsoredAd @relation(fields: [sponsoredAdId], references: [id])
+}
+
+model SponsoredInsight {
+  id            String   @id @default(uuid())
+  sponsoredAdId String
+  date          DateTime
+  impressions   Int      @default(0)
+  clicks        Int      @default(0)
+  ctr           Float    @default(0)
+  conversions   Int      @default(0)
+  spend         Float    @default(0)
+  reach         Int      @default(0)
+  frequency     Float    @default(0)
+  avgViewTime   Float    @default(0)
+  engagement    Int      @default(0)
+  createdAt     DateTime @default(now())
+
+  // Relations
+  sponsoredAd SponsoredAd @relation(fields: [sponsoredAdId], references: [id])
+}
+
+// نموذج ربط الإعلان الممول بمنشور عادي
+model SponsoredPost {
+  id            String @id @default(uuid())
+  sponsoredAdId String @unique @map("sponsored_ad_id")
+  postId        String @map("post_id")
+
+  // إعدادات الترويج
+  isPromoted     Boolean   @default(true) @map("is_promoted")
+  promotionStart DateTime? @map("promotion_start")
+  promotionEnd   DateTime? @map("promotion_end")
+
+  // معلومات الإنشاء والتحديث
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  // العلاقات
+  sponsoredAd SponsoredAd @relation(fields: [sponsoredAdId], references: [id], onDelete: Cascade)
+  post        Post        @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([sponsoredAdId])
+  @@index([postId])
+  @@index([isPromoted])
+  @@map("sponsored_posts")
+}
+
+// نموذج ربط الإعلان الممول بفيديو
+model SponsoredVideo {
+  id            String @id @default(uuid())
+  sponsoredAdId String @unique @map("sponsored_ad_id")
+  videoId       String @map("video_id")
+
+  // إعدادات الفيديو الممول
+  skipableAfter Int?    @map("skipable_after") // ثواني قبل إمكانية التخطي
+  maxDuration   Int?    @map("max_duration") // أقصى مدة عرض بالثواني
+  autoPlay      Boolean @default(false) @map("auto_play")
+
+  // معلومات الإنشاء والتحديث
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  // العلاقات
+  sponsoredAd SponsoredAd @relation(fields: [sponsoredAdId], references: [id], onDelete: Cascade)
+  video       Video       @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@index([sponsoredAdId])
+  @@index([videoId])
+  @@index([autoPlay])
+  @@map("sponsored_videos")
+}
+
+// نموذج البانر الإعلاني المستقل
+model SponsoredBanner {
+  id            String @id @default(uuid())
+  sponsoredAdId String @unique
+
+  // محتوى البانر
+  imageUrl String  @map("image_url")
+  linkUrl  String? @map("link_url") // الرابط عند النقر
+  altText  String? @map("alt_text") // نص بديل للصورة
+
+  // إعدادات العرض
+  width    Int? // عرض البانر بالبكسل
+  height   Int? // ارتفاع البانر بالبكسل
+  position BannerPosition @default(TOP) // موقع عرض البانر
+
+  // إعدادات التفاعل
+  openInNewTab Boolean @default(true) @map("open_in_new_tab")
+
+  trackClicks Boolean @default(true) @map("track_clicks")
+
+  // معلومات الإنشاء والتحديث
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  // العلاقات
+  sponsoredAd SponsoredAd @relation(fields: [sponsoredAdId], references: [id], onDelete: Cascade)
+
+  @@index([sponsoredAdId])
+  @@index([position])
+  @@map("sponsored_banners")
+}
+
+// نموذج المعاملات المالية للحملات الإعلانية
+model SponsoredTransaction {
+  id            String            @id @default(uuid())
+  campaignId    String            @map("campaign_id")
+  amount        Float             @default(0)
+  type          TransactionType   @default(CHARGE)
+  method        PaymentMethod     @default(CREDIT_CARD)
+  status        TransactionStatus @default(PENDING)
+  paymentStatus PaymentStatus     @default(PENDING)
+  reference     String?
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @default(now()) @map("updated_at")
+
+  // Relations
+  campaign Campaign @relation(fields: [campaignId], references: [id])
+
+  @@index([campaignId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([type])
+  @@map("sponsored_transactions")
+}
+
+// 🛡️ نظام تدقيق الإحالات ومكافحة الحسابات الوهمية - Referral Audit & Anti-Fake Accounts System
+model ReferralAuditLog {
+  id                String  @id @default(uuid())
+  referredUserId    String  @map("referred_user_id")
+  referrerId        String  @map("referrer_id")
+  ipAddress         String  @map("ip_address")
+  deviceFingerprint String  @map("device_fingerprint")
+  userAgent         String? @map("user_agent")
+  geoLocation       String? @map("geo_location")
+
+  // Verification status
+  isVerified       Boolean @default(false) @map("is_verified")
+  phoneVerified    Boolean @default(false) @map("phone_verified")
+  behaviorVerified Boolean @default(false) @map("behavior_verified")
+
+  // Fake detection
+  fakeScore         Float    @default(0) @map("fake_score") // 0.0 = real, 1.0 = fake
+  suspiciousFactors String[] @map("suspicious_factors") // Reasons for suspicion
+
+  // Reward management
+  rewardGranted Boolean @default(false) @map("reward_granted")
+  rewardAmount  Float?  @map("reward_amount")
+  rewardType    String? @map("reward_type") // 'points', 'money', 'bonus'
+
+  // Activity tracking
+  userFirstAction   DateTime? @map("user_first_action") // First meaningful action by referred user
+  activeDays        Int       @default(0) @map("active_days") // Days user remained active
+  totalInteractions Int       @default(0) @map("total_interactions") // Posts, comments, likes, etc.
+
+  // Review process
+  reviewStatus String    @default("pending") @map("review_status") // pending, approved, rejected, manual_review
+  reviewedBy   String?   @map("reviewed_by") // Admin who reviewed
+  reviewedAt   DateTime? @map("reviewed_at")
+  reviewNotes  String?   @map("review_notes")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  // Relations
+  referredUser User @relation("ReferralAuditLogs", fields: [referredUserId], references: [id], onDelete: Cascade)
+  referrer     User @relation("ReferrerAuditLogs", fields: [referrerId], references: [id], onDelete: Cascade)
+
+  @@index([referrerId])
+  @@index([ipAddress])
+  @@index([deviceFingerprint])
+  @@index([fakeScore])
+  @@index([reviewStatus])
+  @@index([rewardGranted])
+  @@index([createdAt])
+  @@map("referral_audit_logs")
+}
+
+// ===============================
+// 🎥 جداول تحليلات الفيديو
+// ===============================
+
+model VideoViewSession {
+  id     String @id @default(uuid())
+  userId String @map("user_id")
+  postId String @map("post_id")
+
+  // جلسة المشاهدة
+  startTime     DateTime  @map("start_time")
+  endTime       DateTime? @map("end_time")
+  watchDuration Int       @map("watch_duration") // بالثواني
+  isCompleted   Boolean   @default(false) @map("is_completed")
+  dropOffTime   Int?      @map("drop_off_time") // وقت الانقطاع بالثواني
+
+  // معلومات الجهاز
+  deviceType      DeviceType @map("device_type")
+  qualitySettings String?    @map("quality_settings")
+  isRewatch       Boolean    @default(false) @map("is_rewatch")
+
+  // IP ومعلومات إضافية
+  ipAddress String? @map("ip_address")
+  userAgent String? @map("user_agent")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([postId])
+  @@index([startTime])
+  @@index([isCompleted])
+  @@index([deviceType])
+  @@map("video_view_sessions")
+}
+
+model VideoMetrics {
+  id     String @id @default(uuid())
+  postId String @unique @map("post_id")
+
+  // مؤشرات الأداء الأساسية
+  totalViews       Int   @default(0) @map("total_views")
+  totalWatchTime   Int   @default(0) @map("total_watch_time") // بالثواني
+  averageWatchTime Float @default(0) @map("average_watch_time")
+  completionRate   Float @default(0) @map("completion_rate") // نسبة الإكمال
+  retentionRate    Float @default(0) @map("retention_rate") // نسبة الاحتفاظ
+
+  // تحليل التفاعل
+  engagementRate  Float @default(0) @map("engagement_rate")
+  dropOffPoints   Int[] @map("drop_off_points") // نقاط الانقطاع
+  peakViewingTime Int   @default(0) @map("peak_viewing_time") // وقت الذروة
+  rewatchCount    Int   @default(0) @map("rewatch_count")
+
+  // أجهزة المشاهدة
+  mobileViews  Int @default(0) @map("mobile_views")
+  desktopViews Int @default(0) @map("desktop_views")
+  tabletViews  Int @default(0) @map("tablet_views")
+
+  // تحليل وقتي
+  hourlyDistribution Json? @map("hourly_distribution") // توزيع المشاهدات حسب الساعة
+  dailyDistribution  Json? @map("daily_distribution") // توزيع المشاهدات حسب اليوم
+
+  lastCalculated DateTime @default(now()) @map("last_calculated")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @default(now()) @map("updated_at")
+
+  // Relations
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([totalViews])
+  @@index([engagementRate])
+  @@index([completionRate])
+  @@index([lastCalculated])
+  @@map("video_metrics")
+}
+
+// ===============================
+// 👥 نظام المتابعة
+// ===============================
+
+model UserFollow {
+  id         String @id @default(uuid())
+  followerId String @map("follower_id")
+  followedId String @map("followed_id")
+
+  // معلومات المتابعة
+  isNotificationEnabled Boolean @default(true) @map("is_notification_enabled")
+  source                String? @map("source") // suggestion, search, mutual, etc.
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  // Relations
+  follower User @relation("UserFollowers", fields: [followerId], references: [id], onDelete: Cascade)
+  followed User @relation("UserFollowing", fields: [followedId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followedId])
+  @@index([followerId])
+  @@index([followedId])
+  @@index([createdAt])
+  @@map("user_follows")
+}
+
+// ===============================
+// 📊 سجلات النظام
+// ===============================
+
+model SystemLog {
+  id         String   @id @default(uuid())
+  type       String // نوع العملية (INTEREST_OPTIMIZATION, VIDEO_ANALYTICS, etc.)
+  status     String // حالة العملية (SUCCESS, ERROR, WARNING)
+  details    Json? // تفاصيل العملية
+  executedAt DateTime @default(now()) @map("executed_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([type])
+  @@index([status])
+  @@index([executedAt])
+  @@map("system_logs")
+}
+
+// ===============================
+// 💚 نظام الصديق الأفضل - Best Friend System
+// ===============================
+
+// حالات علاقة الصديق الأفضل
+enum BestFriendStatus {
+  PENDING // في انتظار الموافقة
+  ACTIVE // نشط
+  EXPIRED // منتهي الصلاحية
+  REJECTED // مرفوض
+  CANCELLED // ملغي
+  PAUSED // متوقف مؤقتاً
+}
+
+// أنواع طلبات الصلاحيات
+enum BestFriendPermissionType {
+  POST_ON_PROFILE // نشر على الصفحة الشخصية
+  COMMENT_SPECIAL // تعليق خاص
+  STORY_VIEW // مشاهدة القصص
+  PROFILE_ACCESS // الوصول للملف الشخصي
+}
+
+// قوة العلاقة بين الأصدقاء
+enum RelationshipStrength {
+  WEAK // ضعيف (0-30 نقطة)
+  MODERATE // متوسط (31-60 نقطة) 
+  STRONG // قوي (61-90 نقطة)
+  VERY_STRONG // قوي جداً (91+ نقطة)
+}
+
+// العلاقة الثنائية بين الأصدقاء المقربين
+model BestFriendRelation {
+  id String @id @default(uuid())
+
+  // الطرفان في العلاقة (علاقة ثنائية الاتجاه)
+  user1Id String @map("user_1_id")
+  user2Id String @map("user_2_id")
+
+  // النقاط والإحصائيات التبادلية
+  totalPoints Float @default(0) @map("total_points") // النقاط المجمعة للطرفين
+  user1Points Float @default(0) @map("user_1_points") // نقاط المستخدم الأول
+  user2Points Float @default(0) @map("user_2_points") // نقاط المستخدم الثاني
+  mutualScore Float @default(0) @map("mutual_score") // نقاط التفاعل المتبادل
+
+  // قوة العلاقة والتحليل
+  relationshipStrength RelationshipStrength @default(WEAK) @map("relationship_strength")
+  compatibilityScore   Float                @default(0) @map("compatibility_score") // درجة التوافق 0-1
+  interactionFrequency Float                @default(0) @map("interaction_frequency") // تكرار التفاعل
+
+  // تواريخ العلاقة (دورة أسبوعين)
+  startDate       DateTime  @map("start_date")
+  endDate         DateTime  @map("end_date")
+  nominatedAt     DateTime  @default(now()) @map("nominated_at")
+  decidedAt       DateTime? @map("decided_at") // تاريخ اتخاذ القرار
+  lastInteraction DateTime? @map("last_interaction") // آخر تفاعل مشترك
+
+  // حالة العلاقة ومن بدأها
+  status      BestFriendStatus @default(PENDING)
+  nominatedBy String           @map("nominated_by") // من رشح العلاقة (user1Id أو user2Id أو "system")
+  approvedBy  String?          @map("approved_by") // من وافق على العلاقة
+
+  // إعدادات الصلاحيات والحدود
+  postsUsed         Int     @default(0) @map("posts_used") // عدد المنشورات المستخدمة (حد أقصى 1)
+  commentsUsed      Int     @default(0) @map("comments_used") // عدد التعليقات المستخدمة (حد أقصى 10)
+  approvalsRequired Boolean @default(true) @map("approvals_required") // هل تحتاج موافقة للأنشطة
+
+  // ترشيح تلقائي أم يدوي
+  isAutoNominated Boolean @default(false) @map("is_auto_nominated") // ترشيح تلقائي (تفوق واضح)
+  wasManualChoice Boolean @default(false) @map("was_manual_choice") // اختيار يدوي (عند التساوي)
+
+  // تتبع دورة الترشيح
+  nominationWeek String @map("nomination_week") // أسبوع الترشيح (مثل "2025-W27")
+  cycleNumber    Int    @default(1) @map("cycle_number") // رقم الدورة للمستخدم
+
+  // بيانات إضافية للتحليل
+  commonInterests String[] @map("common_interests") // الاهتمامات المشتركة
+  mutualFriends   Int      @default(0) @map("mutual_friends") // عدد الأصدقاء المشتركين
+  sharedContent   Int      @default(0) @map("shared_content") // المحتوى المشترك
+
+  // تقييم العلاقة من الطرفين
+  user1Rating   Float? @map("user_1_rating") // تقييم المستخدم الأول (1-5)
+  user2Rating   Float? @map("user_2_rating") // تقييم المستخدم الثاني (1-5)
+  averageRating Float? @map("average_rating") // متوسط التقييم
+
+  // معلومات النظام
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  // Relations
+  user1 User @relation("BestFriendUser1", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2 User @relation("BestFriendUser2", fields: [user2Id], references: [id], onDelete: Cascade)
+
+  // طلبات الصلاحيات المرتبطة
+  permissionRequests BestFriendPermissionRequest[]
+
+  // سجل الأنشطة
+  activityLogs BestFriendActivityLog[]
+
+  // القيود والفهارس
+  @@unique([user1Id, user2Id, nominationWeek]) // علاقة واحدة لكل أسبوع ترشيح
+  @@index([user1Id])
+  @@index([user2Id])
+  @@index([status])
+  @@index([startDate])
+  @@index([endDate])
+  @@index([nominationWeek])
+  @@index([totalPoints])
+  @@index([relationshipStrength])
+  @@index([nominatedAt])
+  @@map("best_friend_relations")
+}
+
+// طلبات الصلاحيات الخاصة
+model BestFriendPermissionRequest {
+  id String @id @default(uuid())
+
+  relationId  String @map("relation_id")
+  requesterId String @map("requester_id") // من طلب الصلاحية
+  approverId  String @map("approver_id") // من سيوافق عليها
+
+  permissionType BestFriendPermissionType @map("permission_type")
+  status         String                   @default("pending") // pending, approved, rejected, expired
+
+  // تفاصيل الطلب
+  requestDetails String? @map("request_details") // تفاصيل الطلب (مثل نص المنشور)
+  approvalReason String? @map("approval_reason") // سبب الموافقة أو الرفض
+
+  // تواريخ مهمة
+  requestedAt DateTime  @default(now()) @map("requested_at")
+  respondedAt DateTime? @map("responded_at")
+  expiresAt   DateTime  @map("expires_at") // انتهاء صلاحية الطلب (24 ساعة)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  // Relations
+  relation  BestFriendRelation @relation(fields: [relationId], references: [id], onDelete: Cascade)
+  requester User               @relation("PermissionRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  approver  User               @relation("PermissionApprover", fields: [approverId], references: [id], onDelete: Cascade)
+
+  @@index([relationId])
+  @@index([requesterId])
+  @@index([approverId])
+  @@index([permissionType])
+  @@index([status])
+  @@index([expiresAt])
+  @@map("best_friend_permission_requests")
+}
+
+// سجل أنشطة الأصدقاء المقربين
+model BestFriendActivityLog {
+  id String @id @default(uuid())
+
+  relationId String @map("relation_id")
+  userId     String @map("user_id") // من قام بالنشاط
+
+  activityType String @map("activity_type") // نوع النشاط
+  description  String // وصف النشاط
+  metadata     Json? // بيانات إضافية
+
+  pointsAwarded Float @default(0) @map("points_awarded") // النقاط الممنوحة للنشاط
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  relation BestFriendRelation @relation(fields: [relationId], references: [id], onDelete: Cascade)
+  user     User               @relation("BestFriendActivities", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([relationId])
+  @@index([userId])
+  @@index([activityType])
+  @@index([createdAt])
+  @@map("best_friend_activity_logs")
+}
+
+// ===============================
+// 📱 نظام التتبع المتقدم للمستخدم
+// ===============================
+
+// تتبع سلوك التمرير
+model UserScrollTracking {
+  id String @id @default(uuid())
+
+  userId String @map("user_id")
+  postId String @map("post_id")
+
+  // بيانات التمرير
+  scrollDepth  Float  @map("scroll_depth") // نسبة التمرير (0-100%)
+  timeOnPost   Float  @map("time_on_post") // وقت قضاه على المنشور (ثواني)
+  pauseTime    Float  @map("pause_time") // وقت التوقف (ثواني)
+  scrollSpeed  Float  @map("scroll_speed") // سرعة التمرير (px/second)
+  isVisible    Boolean @map("is_visible") // هل المنشور مرئي
+  
+  // بيانات الشاشة
+  viewportData Json @map("viewport_data") // ارتفاع الشاشة وبيانات العرض
+  
+  sessionId String @map("session_id") // معرف الجلسة
+  timestamp DateTime @default(now())
+
+  // Relations
+  user User @relation("UserScrollTracking", fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation("PostScrollTracking", fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([postId])
+  @@index([sessionId])
+  @@index([timestamp])
+  @@map("user_scroll_tracking")
+}
+
+// تتبع مشاهدة الفيديو المتقدم
+model UserVideoTracking {
+  id String @id @default(uuid())
+
+  userId String @map("user_id")
+  postId String @map("post_id")
+
+  // بيانات الفيديو
+  videoDuration     Float   @map("video_duration") // مدة الفيديو (ثواني)
+  watchedDuration   Float   @map("watched_duration") // المدة المشاهدة (ثواني)
+  watchedPercentage Float   @map("watched_percentage") // نسبة المشاهدة (0-100%)
+  
+  // إحصائيات التفاعل
+  playCount  Int @map("play_count") // عدد مرات التشغيل
+  pauseCount Int @map("pause_count") // عدد مرات الإيقاف
+  seekCount  Int @map("seek_count") // عدد مرات التقديم/التأخير
+  
+  isCompleted Boolean @map("is_completed") // هل أكمل المشاهدة
+  exitPoint   Float   @map("exit_point") // نقطة الخروج (ثانية)
+  
+  // بيانات إضافية
+  interactionData Json @map("interaction_data") // تغييرات الجودة والصوت
+  
+  sessionId String @map("session_id")
+  timestamp DateTime @default(now())
+
+  // Relations
+  user User @relation("UserVideoTracking", fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation("PostVideoTracking", fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([postId])
+  @@index([sessionId])
+  @@index([timestamp])
+  @@index([isCompleted])
+  @@map("user_video_tracking")
+}
+
+// تتبع التفاعل المتقدم
+model UserInteractionTracking {
+  id String @id @default(uuid())
+
+  userId String @map("user_id")
+  postId String @map("post_id")
+
+  // بيانات التفاعل
+  interactionType UserEngagementType @map("interaction_type")
+  timeToInteract  Float @map("time_to_interact") // الوقت من الرؤية للتفاعل (ثواني)
+  scrollPosition  Float @map("scroll_position") // موقع التمرير عند التفاعل
+  
+  // موقع النقر
+  clickPosition Json @map("click_position") // {x, y}
+  
+  deviceType String @map("device_type") // نوع الجهاز
+  sessionId  String @map("session_id")
+  timestamp  DateTime @default(now())
+
+  // Relations
+  user User @relation("UserInteractionTracking", fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation("PostInteractionTracking", fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([postId])
+  @@index([interactionType])
+  @@index([sessionId])
+  @@index([timestamp])
+  @@map("user_interaction_tracking")
+}
+
+// ملف المستخدم الذكي
+model SmartUserProfile {
+  id String @id @default(uuid())
+
+  userId String @unique @map("user_id")
+
+  // أنماط السلوك
+  profileType String @map("profile_type") // نوع المستخدم المستنتج
+  
+  // إحصائيات التمرير
+  avgTimeOnPost   Float @map("avg_time_on_post")
+  avgScrollSpeed  Float @map("avg_scroll_speed")
+  avgPauseTime    Float @map("avg_pause_time")
+  scrollEngagementRate Float @map("scroll_engagement_rate")
+  
+  // إحصائيات الفيديو
+  avgWatchPercentage Float @map("avg_watch_percentage")
+  videoCompletionRate Float @map("video_completion_rate")
+  avgPlayCount       Float @map("avg_play_count")
+  videoEngagementIndicator Float @map("video_engagement_indicator")
+  
+  // بيانات إضافية
+  behaviorData Json @map("behavior_data") // تحليلات مفصلة
+  
+  lastAnalyzed DateTime @map("last_analyzed")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @map("updated_at")
+
+  // Relations
+  user User @relation("UserSmartProfiles", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([profileType])
+  @@index([lastAnalyzed])
+  @@map("smart_user_profiles")
+}
