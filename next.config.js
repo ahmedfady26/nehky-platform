@@ -1,6 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'export',
+  trailingSlash: true,
+  basePath: '/nehky-platform',
+  assetPrefix: '/nehky-platform/',
   images: {
+    unoptimized: true,
     domains: ['localhost'],
   },
   env: {
